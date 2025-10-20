@@ -1,4 +1,4 @@
-import { Providers } from "@/components/Providers"
+import { Navbar } from "@/components/navbar/Navbar"
 import "./globals.css"
 import type { Metadata } from "next"
 
@@ -8,8 +8,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <Providers>{children}</Providers>
-      </body>
+        <Navbar />
+        {children}
+        </body>
     </html>
   )
 }
