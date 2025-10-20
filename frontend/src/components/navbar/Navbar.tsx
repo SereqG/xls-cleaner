@@ -25,7 +25,7 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between w-[90vw] h-16 px-4">
+    <nav className="fixed top-0 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between w-[90vw] h-16 px-4 bg-background/80 backdrop-blur-sm">
       <div className="text-lg font-semibold">
         Excel Cleaner
       </div>
