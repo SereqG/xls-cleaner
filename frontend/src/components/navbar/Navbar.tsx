@@ -10,12 +10,7 @@ import {
 } from "@/components/ui/select"
 
 export const Navbar = () => {
-  const [language, setLanguage] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("language") || "en";
-    }
-    return "en";
-  });
+  const [language, setLanguage] = useState("en");
 
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
