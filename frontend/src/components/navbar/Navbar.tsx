@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { ThemeToggle } from "@/components/navbar/ThemeToggle"
 
 export const Navbar = () => {
   const [language, setLanguage] = useState("en");
@@ -25,18 +26,21 @@ export const Navbar = () => {
         Excel Cleaner
       </div>
       
-      <Select value={language} onValueChange={handleLanguageChange}>
-        <SelectTrigger className="w-[120px]">
-          <SelectValue placeholder="Language" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="en">English</SelectItem>
-          <SelectItem value="pl">Polski</SelectItem>
-          <SelectItem value="es">Español</SelectItem>
-          <SelectItem value="de">Deutsch</SelectItem>
-          <SelectItem value="fr">Français</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <Select value={language} onValueChange={handleLanguageChange}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="Language" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="pl">Polski</SelectItem>
+            <SelectItem value="es">Español</SelectItem>
+            <SelectItem value="de">Deutsch</SelectItem>
+            <SelectItem value="fr">Français</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </nav>
   )
 }
