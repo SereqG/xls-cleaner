@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState } from 'react'
+import Link from 'next/link'
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 import {
   Select,
   SelectContent,
@@ -22,11 +24,41 @@ export const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between w-[90vw] h-16 px-4 bg-background/80 backdrop-blur-sm">
-      <div className="text-lg font-semibold">
-        Excel Cleaner
+      <div className="flex items-center gap-6">
+        <Link href="/" className="text-lg font-semibold">
+          Excel Cleaner
+        </Link>
+        
+       
       </div>
       
       <div className="flex items-center gap-2">
+         <div className="flex items-center gap-4">
+          <SignedOut>
+            <Link 
+              href="/sign-in" 
+              className="text-sm font-medium hover:text-violet-400 transition-colors"
+            >
+              Login
+            </Link>
+            <Link 
+              href="/sign-up" 
+              className="text-sm font-medium hover:text-violet-400 transition-colors"
+            >
+              Register
+            </Link>
+          </SignedOut>
+        </div>
+        <SignedIn>
+          <UserButton 
+            afterSignOutUrl="/"
+            appearance={{
+              elements: {
+                avatarBox: "w-9 h-9"
+              }
+            }}
+          />
+        </SignedIn>
         <ThemeToggle />
         <Select value={language} onValueChange={handleLanguageChange}>
           <SelectTrigger className="w-[120px]">

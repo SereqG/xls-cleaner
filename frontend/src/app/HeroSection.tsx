@@ -1,3 +1,7 @@
+"use client"
+
+import { SignedIn, SignedOut } from '@clerk/nextjs'
+import Link from 'next/link'
 import { FileUpload } from "@/components/FileUpload"
 import { FileActions } from "@/components/FileActions"
 
@@ -19,8 +23,24 @@ export function HeroSection() {
         </div>
 
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-700">
-          <FileUpload />
-          <FileActions />
+          <SignedIn>
+            <FileUpload />
+            <FileActions />
+          </SignedIn>
+          
+          <SignedOut>
+            <div className="flex flex-col items-center gap-6">
+              <p className="text-lg text-muted-foreground">
+                Sign in to start cleaning your Excel files
+              </p>
+              <Link 
+                href="/sign-in"
+                className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-8 py-3 text-lg font-semibold text-white transition-all hover:bg-violet-700 hover:scale-105"
+              >
+                Let&apos;s Start
+              </Link>
+            </div>
+          </SignedOut>
         </div>
       </div>
     </section>
