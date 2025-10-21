@@ -29,7 +29,11 @@ export const Navbar = () => {
           Excel Cleaner
         </Link>
         
-        <div className="flex items-center gap-4">
+       
+      </div>
+      
+      <div className="flex items-center gap-2">
+         <div className="flex items-center gap-4">
           <SignedOut>
             <Link 
               href="/sign-in" 
@@ -45,9 +49,6 @@ export const Navbar = () => {
             </Link>
           </SignedOut>
         </div>
-      </div>
-      
-      <div className="flex items-center gap-2">
         <SignedIn>
           <UserButton 
             afterSignOutUrl="/"
