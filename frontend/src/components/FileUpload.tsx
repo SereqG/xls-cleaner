@@ -44,9 +44,16 @@ export function FileUpload() {
   }
 
   const isValidFile = (file: File): boolean => {
-    const validExtensions = ['.xlsx', '.xls']
+    const validTypes: { [key: string]: string } = {
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      '.xls': 'application/vnd.ms-excel',
+    }
     const fileName = file.name.toLowerCase()
-    return validExtensions.some(ext => fileName.endsWith(ext))
+    const fileType = file.type
+    // Check for a valid extension and matching MIME type
+    return Object.entries(validTypes).some(([ext, mime]) =>
+      fileName.endsWith(ext) && fileType === mime
+    )
   }
 
   const handleClick = () => {
