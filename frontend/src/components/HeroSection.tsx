@@ -8,7 +8,7 @@ export function HeroSection() {
           Fast and easy to use
           <br />
           <span className="bg-gradient-to-r from-violet-800 to-violet-400 bg-clip-text text-6xl text-transparent md:text-7xl lg:text-8xl">
-            excel cleaner
+            Excel Cleaner
           </span>
         </h1>
         <p className="mb-8 text-lg text-gray-400 md:text-xl">
