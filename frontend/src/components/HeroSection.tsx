@@ -12,7 +12,7 @@ export function HeroSection() {
           </span>
         </h1>
         <p className="mb-8 text-lg text-gray-400 md:text-xl">
-          Use this excel cleaner to make your excel cleaner more readable
+          Use this Excel cleaner to make your Excel files cleaner and more readable
         </p>
         <Button
           size="lg"
