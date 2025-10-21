@@ -10,12 +10,10 @@ export function FileActions() {
   const { uploadedFile } = useFile()
 
   const handleFormatData = () => {
-    // TODO: Implement format data logic
     console.log('Format Data clicked')
   }
 
   const handleUseAI = () => {
-    // TODO: Implement AI cleaning logic
     console.log('Use AI for Cleaning clicked')
   }
 
