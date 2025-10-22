@@ -1,5 +1,4 @@
 import pandas as pd
-import openpyxl
 from typing import List, Dict, Any, Union
 import io
 from werkzeug.datastructures import FileStorage
