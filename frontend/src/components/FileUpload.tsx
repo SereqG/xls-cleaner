@@ -1,64 +1,23 @@
 "use client"
 
-import React, { useRef, useState } from 'react'
-import { Upload } from 'lucide-react'
+import React from 'react'
+import { Upload, Loader2 } from 'lucide-react'
 import { useFile } from '@/contexts/FileContext'
 import { cn } from '@/lib/utils'
+import { useFileUpload } from '@/hooks'
 
 export function FileUpload() {
-  const { uploadedFile, setUploadedFile } = useFile()
-  const [isDragging, setIsDragging] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsDragging(false)
-
-    const files = e.dataTransfer.files
-    if (files.length > 0) {
-      const file = files[0]
-      if (isValidFile(file)) {
-        setUploadedFile(file)
-      }
-    }
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files.length > 0) {
-      const file = files[0]
-      if (isValidFile(file)) {
-        setUploadedFile(file)
-      }
-    }
-  }
-
-  const isValidFile = (file: File): boolean => {
-    const validTypes: { [key: string]: string } = {
-      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      '.xls': 'application/vnd.ms-excel',
-    }
-    const fileName = file.name.toLowerCase()
-    const fileType = file.type
-    // Check for a valid extension and matching MIME type
-    return Object.entries(validTypes).some(([ext, mime]) =>
-      fileName.endsWith(ext) && fileType === mime
-    )
-  }
-
-  const handleClick = () => {
-    fileInputRef.current?.click()
-  }
+  const { uploadedFile } = useFile()
+  const {
+    isDragging,
+    fileInputRef,
+    isAnalyzing,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleFileChange,
+    handleClick,
+  } = useFileUpload()
 
   return (
     <div
@@ -86,11 +45,20 @@ export function FileUpload() {
           <Upload className="h-8 w-8 text-violet-500" />
         </div>
         
-        {uploadedFile ? (
+        {isAnalyzing ? (
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 text-violet-500 animate-spin" />
+            <p className="text-lg font-semibold">Analyzing your Excel file...</p>
+            <p className="text-sm text-muted-foreground">This may take a moment</p>
+          </div>
+        ) : uploadedFile ? (
           <div className="flex flex-col gap-2">
-            <p className="text-xl font-semibold">{uploadedFile.name}</p>
+            <p className="text-xl font-semibold">{uploadedFile.file_metadata.name}</p>
             <p className="text-sm text-muted-foreground">
-              {(uploadedFile.size / 1024).toFixed(2)} KB
+              {(uploadedFile.file_metadata.size / 1024).toFixed(2)} KB
+            </p>
+            <p className="text-xs text-green-500">
+              ✓ Analyzed {uploadedFile.spreadsheet_data.length} sheet(s)
             </p>
           </div>
         ) : (

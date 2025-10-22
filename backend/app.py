@@ -8,14 +8,12 @@ from controllers.file_controller import FileController
 def create_app():
     app = Flask(__name__)
     
-    # Configure app
     app.config['MAX_CONTENT_LENGTH'] = Config.MAX_CONTENT_LENGTH
     
     CORS(app, origins=Config.CORS_ORIGINS)
     
     logging.basicConfig(level=getattr(logging, Config.LOG_LEVEL))
     
-    # Initialize controllers
     file_controller = FileController()
     
     @app.route('/')
