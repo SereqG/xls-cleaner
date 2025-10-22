@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Download, Loader2, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { FormatDataState } from '@/types/modal'
 import type { FileData } from '@/types/api'
-import * as XLSX from 'xlsx'
+import { useDownloadFile } from '@/hooks'
 
 interface DownloadFileProps {
   state: FormatDataState;
@@ -14,100 +14,13 @@ interface DownloadFileProps {
 }
 
 export function DownloadFile({ state, uploadedFile, onComplete }: DownloadFileProps) {
-  const [filename, setFilename] = useState(() => {
-    const originalName = uploadedFile.file_metadata.name
-    const nameWithoutExt = originalName.replace(/\.(xlsx|xls)$/i, '')
-    return `${nameWithoutExt}_formatted.xlsx`
-  })
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [downloadComplete, setDownloadComplete] = useState(false)
-
-  const handleDownload = async () => {
-    setIsDownloading(true)
-    
-    try {
-      // Find the selected sheet
-      const sheet = uploadedFile.spreadsheet_data.find(
-        s => s.spreadsheet_name === state.selectedSheet
-      )
-      
-      if (!sheet) {
-        throw new Error('Selected sheet not found')
-      }
-
-      // Get selected columns
-      const selectedColumns = state.columns.filter(col => col.isSelected)
-      
-      // Transform all data
-      const transformedData = sheet.spreadsheet_snippet.map((row: Record<string, unknown>) => {
-        const transformedRow: Record<string, unknown> = {}
-        
-        selectedColumns.forEach(column => {
-          const action = state.actions.find(a => a.columnName === column.name)
-          let value = row[column.name]
-          
-          // Apply transformations
-          if (value === null || value === undefined || value === '') {
-            if (action?.replaceEmpty !== undefined) {
-              value = action.replaceEmpty
-            }
-          } else {
-            // Apply type-specific transformations
-            if (column.selectedType === 'string' && action?.changeCase) {
-              const strValue = String(value)
-              switch (action.changeCase) {
-                case 'uppercase':
-                  value = strValue.toUpperCase()
-                  break
-                case 'lowercase':
-                  value = strValue.toLowerCase()
-                  break
-                case 'titlecase':
-                  value = strValue.replace(/\w\S*/g, (txt) => 
-                    txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-                  )
-                  break
-              }
-            } else if (column.selectedType === 'number' && action?.roundDecimals !== undefined) {
-              const numValue = Number(value)
-              if (!isNaN(numValue)) {
-                value = Number(numValue.toFixed(action.roundDecimals))
-              }
-            }
-          }
-          
-          transformedRow[column.name] = value
-        })
-        
-        return transformedRow
-      })
-
-      // Create a new workbook
-      const workbook = XLSX.utils.book_new()
-      
-      // Convert data to worksheet
-      const worksheet = XLSX.utils.json_to_sheet(transformedData)
-      
-      // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, state.selectedSheet || 'Sheet1')
-      
-      // Generate and download the file
-      XLSX.writeFile(workbook, filename)
-      
-      setDownloadComplete(true)
-      
-      // Auto-close after 2 seconds
-      setTimeout(() => {
-        onComplete()
-      }, 2000)
-      
-    } catch (error) {
-      console.error('Download error:', error)
-      alert('Failed to download file: ' + (error instanceof Error ? error.message : 'Unknown error'))
-    } finally {
-      setIsDownloading(false)
-    }
-  }
+  const {
+    filename,
+    setFilename,
+    isDownloading,
+    downloadComplete,
+    handleDownload,
+  } = useDownloadFile({ state, uploadedFile, onComplete })
 
   return (
     <div className="space-y-6">

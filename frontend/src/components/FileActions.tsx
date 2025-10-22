@@ -1,59 +1,43 @@
 "use client"
 
-import React, { useState } from 'react'
+import React from 'react'
 import { Settings, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useFile } from '@/contexts/FileContext'
-import { cn } from '@/lib/utils'
-import { FormatDataModal } from './FormatDataModal'
+import { ActionButton } from './ActionButton'
+import { FormatDataModal } from './format-data-modal'
+import { useFileActions } from '@/hooks'
 
 export function FileActions() {
-  const { uploadedFile } = useFile()
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
-  const handleFormatData = () => {
-    if (uploadedFile) {
-      setIsModalOpen(true)
-    }
-  }
-
-  const handleUseAI = () => {
-    if (uploadedFile) {
-      console.log('Use AI for Cleaning clicked for:', uploadedFile.file_metadata.name)
-      console.log('Available sheets:', uploadedFile.spreadsheet_data.map(sheet => sheet.spreadsheet_name))
-    }
-  }
+  const {
+    uploadedFile,
+    isModalOpen,
+    setIsModalOpen,
+    handleFormatData,
+    handleUseAI,
+  } = useFileActions()
 
   return (
     <>
       <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-5 duration-500">
-        <Button
+        <ActionButton
           onClick={handleFormatData}
           disabled={!uploadedFile}
-          size="lg"
           variant="outline"
-          className={cn(
-            "h-16 text-base font-semibold transition-all duration-300",
-            uploadedFile && "hover:scale-105 hover:border-violet-400 hover:bg-violet-400/10"
-          )}
+          icon={Settings}
+          className="hover:border-violet-400 hover:bg-violet-400/10"
+          enableHoverEffects={!!uploadedFile}
         >
-          <Settings className="h-5 w-5" />
           Format Data
-        </Button>
+        </ActionButton>
         
-        <Button
+        <ActionButton
           onClick={handleUseAI}
           disabled={!uploadedFile}
-          size="lg"
-          className={cn(
-            "h-16 text-base font-semibold transition-all duration-300",
-            "bg-green-600 text-white hover:bg-green-700",
-            uploadedFile && "hover:scale-105"
-          )}
+          icon={Sparkles}
+          className="bg-green-600 text-white hover:bg-green-700"
+          enableHoverEffects={!!uploadedFile}
         >
-          <Sparkles className="h-5 w-5" />
           Use AI for Cleaning
-        </Button>
+        </ActionButton>
       </div>
 
       <FormatDataModal open={isModalOpen} onOpenChange={setIsModalOpen} />
