@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Union
 import io
 from werkzeug.datastructures import FileStorage
 
-from models.spreedsheet_info import SpreadsheetData, ColumnInfo
+from models.spreadsheet_info import SpreadsheetData, ColumnInfo
 
 class FileService:
     
