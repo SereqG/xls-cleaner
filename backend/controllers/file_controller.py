@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from werkzeug.datastructures import FileStorage
 from services.file_service import FileService
-from models.spreedsheet_info import SpreadsheetData
+from models.spreadsheet_info import SpreadsheetData
 from typing import List
 
 class FileController:
