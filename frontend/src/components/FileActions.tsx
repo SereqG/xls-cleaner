@@ -10,11 +10,17 @@ export function FileActions() {
   const { uploadedFile } = useFile()
 
   const handleFormatData = () => {
-    console.log('Format Data clicked')
+    if (uploadedFile) {
+      console.log('Format Data clicked for:', uploadedFile.file_metadata.name)
+      console.log('Spreadsheet data:', uploadedFile.spreadsheet_data)
+    }
   }
 
   const handleUseAI = () => {
-    console.log('Use AI for Cleaning clicked')
+    if (uploadedFile) {
+      console.log('Use AI for Cleaning clicked for:', uploadedFile.file_metadata.name)
+      console.log('Available sheets:', uploadedFile.spreadsheet_data.map(sheet => sheet.spreadsheet_name))
+    }
   }
 
   return (
