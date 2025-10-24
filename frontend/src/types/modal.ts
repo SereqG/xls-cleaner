@@ -25,3 +25,30 @@ export interface FormatDataState {
   isProcessing: boolean;
   error: string | null;
 }
+
+// AI Modal Types
+export type AIModalStep = 'select-sheet' | 'chat' | 'preview' | 'download';
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+export interface AIModalState {
+  currentStep: AIModalStep;
+  selectedSheet: string | null;
+  messages: ChatMessage[];
+  previewData: string | null;
+  sessionId: string | null;
+  isProcessing: boolean;
+  error: string | null;
+  remainingTokens: number;
+  dailyLimit: number;
+}
+
+export interface TokenStatus {
+  used_tokens: number;
+  remaining_tokens: number;
+  daily_limit: number;
+}

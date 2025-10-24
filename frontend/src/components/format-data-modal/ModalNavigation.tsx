@@ -1,10 +1,10 @@
 import React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ModalStep } from '@/types/modal'
+import { ModalStep, AIModalStep } from '@/types/modal'
 
 interface ModalNavigationProps {
-  currentStep: ModalStep
+  currentStep: ModalStep | AIModalStep
   currentStepIndex: number
   isProcessing: boolean
   canProceed: boolean
