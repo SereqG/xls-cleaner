@@ -243,7 +243,10 @@ IMPORTANT: Only respond to Excel-related questions. If a user asks about anythin
             response = agent.invoke({"input": message})
             return response.get("output", "I couldn't process that request.")
         except Exception as e:
-            return f"Error: {str(e)}"
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in AI chat: {str(e)}", exc_info=True)
+            return "I encountered an error processing your request. Please try again."
     
     def save_modified_file(self, session_id: str, output_path: str) -> bool:
         """Save the modified Excel file."""

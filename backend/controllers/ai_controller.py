@@ -5,7 +5,10 @@ from services.token_service import token_service
 import os
 import tempfile
 import shutil
+import logging
 from config import Config
+
+logger = logging.getLogger(__name__)
 
 
 class AIController:
@@ -90,7 +93,8 @@ class AIController:
             }), 200
             
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            logger.error(f"Error starting AI session: {str(e)}", exc_info=True)
+            return jsonify({"error": "Failed to start AI session"}), 500
     
     def chat(self):
         """
@@ -135,7 +139,8 @@ class AIController:
             }), 200
             
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            logger.error(f"Error in AI chat: {str(e)}", exc_info=True)
+            return jsonify({"error": "Failed to process message"}), 500
     
     def get_preview(self):
         """
@@ -161,7 +166,8 @@ class AIController:
             }), 200
             
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            logger.error(f"Error getting preview: {str(e)}", exc_info=True)
+            return jsonify({"error": "Failed to get preview"}), 500
     
     def download_modified_file(self):
         """
@@ -201,7 +207,8 @@ class AIController:
             )
             
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            logger.error(f"Error downloading file: {str(e)}", exc_info=True)
+            return jsonify({"error": "Failed to download file"}), 500
     
     def end_session(self):
         """
@@ -233,7 +240,8 @@ class AIController:
             return jsonify({"message": "Session ended"}), 200
             
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            logger.error(f"Error ending session: {str(e)}", exc_info=True)
+            return jsonify({"error": "Failed to end session"}), 500
     
     def get_token_status(self):
         """
@@ -256,4 +264,5 @@ class AIController:
             }), 200
             
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            logger.error(f"Error getting token status: {str(e)}", exc_info=True)
+            return jsonify({"error": "Failed to get token status"}), 500
