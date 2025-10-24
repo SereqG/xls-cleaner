@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import logging
-
 from config import Config
-from controllers.file_controller import FileController
+
+from routes.file_routes import file_bp
 
 def create_app():
     app = Flask(__name__)
@@ -14,36 +14,8 @@ def create_app():
     
     logging.basicConfig(level=getattr(logging, Config.LOG_LEVEL))
     
-    file_controller = FileController()
     
-    @app.route('/')
-    def hello_world():
-        return jsonify({
-            'message': 'Hello World!',
-            'service': 'Excel Cleaner API',
-            'status': 'ready'
-        })
-    
-    @app.route('/health')
-    def health_check():
-        return jsonify({
-            'status': 'healthy',
-            'service': 'Excel Cleaner API'
-        })
-    
-    @app.route('/api/analyze-spreadsheet', methods=['POST'])
-    def analyze_spreadsheet():
-        """
-        Analyze uploaded XLSX file and return spreadsheet information.
-        
-        Accepts:
-        - Multipart form data with 'file' field containing XLSX file
-        - JSON body with 'file_path' field containing path to XLSX file
-        
-        Returns:
-        JSON array with spreadsheet data for all sheets
-        """
-        return file_controller.analyze_spreadsheet()
+    app.register_blueprint(file_bp)
     
     return app
 
