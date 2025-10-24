@@ -12,3 +12,18 @@ class Config:
     HOST = os.environ.get('HOST', '0.0.0.0')
     PORT = int(os.environ.get('PORT', 5000))
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+    
+    # AI Configuration
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+    
+    # Redis Configuration
+    REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+    REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
+    REDIS_DB = int(os.environ.get('REDIS_DB', 0))
+    REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', None)
+    
+    # Token Limits
+    DAILY_TOKEN_LIMIT = int(os.environ.get('DAILY_TOKEN_LIMIT', 15))
+    
+    # Clerk Configuration
+    CLERK_SECRET_KEY = os.environ.get('CLERK_SECRET_KEY', '')
