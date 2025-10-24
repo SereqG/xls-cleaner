@@ -54,7 +54,7 @@ function applyStringCaseTransformation(value: string, caseType: string): string 
       return value.toLowerCase()
     case 'titlecase':
       return value.replace(/\w\S*/g, (txt) => 
-        txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+        txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase()
       )
     default:
       return value
