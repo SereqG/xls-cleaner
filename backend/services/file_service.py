@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from typing import List, Dict, Any, Union
 import io
 from werkzeug.datastructures import FileStorage
@@ -45,7 +46,9 @@ class FileService:
                     col_type = self._determine_column_type(df[col_name])
                     columns.append(ColumnInfo(name=str(col_name), type=col_type))
                 
-                snippet = df.head(5).fillna("").to_dict('records')
+                # Convert DataFrame to records and ensure JSON serializable types
+                snippet_raw = df.head(5).fillna("").to_dict('records')
+                snippet = self._make_json_serializable(snippet_raw)
                 
                 sheet_data = SpreadsheetData(
                     spreadsheet_name=sheet_name,
@@ -115,3 +118,36 @@ class FileService:
             return True
         except:
             return False
+    
+    def _make_json_serializable(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Convert pandas/numpy data types to JSON serializable Python types.
+        
+        Args:
+            data: List of dictionaries that may contain pandas/numpy types
+            
+        Returns:
+            List of dictionaries with JSON serializable values
+        """
+        import numpy as np
+        
+        serializable_data = []
+        
+        for record in data:
+            serializable_record = {}
+            
+            for key, value in record.items():
+                if pd.isna(value) or value is pd.NaT:
+                    serializable_record[key] = None
+                elif isinstance(value, (np.integer, np.floating)):
+                    serializable_record[key] = value.item()
+                elif isinstance(value, np.bool_):
+                    serializable_record[key] = bool(value)
+                elif isinstance(value, (pd.Timestamp, np.datetime64)):
+                    serializable_record[key] = str(value)
+                else:
+                    serializable_record[key] = value
+                    
+            serializable_data.append(serializable_record)
+            
+        return serializable_data
