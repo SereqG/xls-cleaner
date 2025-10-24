@@ -129,7 +129,7 @@ class FileService:
         Returns:
             List of dictionaries with JSON serializable values
         """
-        import numpy as np
+        
         
         serializable_data = []
         
