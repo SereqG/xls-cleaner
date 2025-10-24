@@ -1,10 +1,13 @@
 "use client"
 
 import React from 'react'
-import { Upload, Loader2 } from 'lucide-react'
+import { Upload } from 'lucide-react'
 import { useFile } from '@/contexts/FileContext'
 import { cn } from '@/lib/utils'
 import { useFileUpload } from '@/hooks'
+import { FileAnalyzingState } from './FileAnalyzingState'
+import { FileUploadedState } from './FileUploadedState'
+import { FileEmptyState } from './FileEmptyState'
 
 export function FileUpload() {
   const { uploadedFile } = useFile()
@@ -46,29 +49,11 @@ export function FileUpload() {
         </div>
         
         {isAnalyzing ? (
-          <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-8 w-8 text-violet-500 animate-spin" />
-            <p className="text-lg font-semibold">Analyzing your Excel file...</p>
-            <p className="text-sm text-muted-foreground">This may take a moment</p>
-          </div>
+          <FileAnalyzingState />
         ) : uploadedFile ? (
-          <div className="flex flex-col gap-2">
-            <p className="text-xl font-semibold">{uploadedFile.file_metadata.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {(uploadedFile.file_metadata.size / 1024).toFixed(2)} KB
-            </p>
-            <p className="text-xs text-green-500">
-              ✓ Analyzed {uploadedFile.spreadsheet_data.length} sheet(s)
-            </p>
-          </div>
+          <FileUploadedState uploadedFile={uploadedFile} />
         ) : (
-          <>
-            <h3 className="text-xl font-semibold">Upload your Excel</h3>
-            <p className="text-sm text-muted-foreground">
-              Drag & drop or click to upload
-            </p>
-            <p className="text-xs text-violet-400">Supported: .xlsx, .xls</p>
-          </>
+          <FileEmptyState />
         )}
       </div>
     </div>
