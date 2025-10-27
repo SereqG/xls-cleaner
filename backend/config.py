@@ -27,3 +27,10 @@ class Config:
     
     # Clerk Configuration
     CLERK_SECRET_KEY = os.environ.get('CLERK_SECRET_KEY', '')
+
+    # File validation
+    ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
+    ALLOWED_MIME_TYPES = {
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel'
+    }

@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Any, Union
 import io
-from werkzeug.datastructures import FileStorage
 
+from typing import List, Dict, Any, Union
+from werkzeug.datastructures import FileStorage
 from models.spreadsheet_info import SpreadsheetData, ColumnInfo
 
 class FileService:
@@ -29,10 +29,6 @@ class FileService:
                 file_content = file.read()
                 file.seek(0)
                 excel_file = pd.ExcelFile(io.BytesIO(file_content))
-            elif isinstance(file, str):
-                excel_file = pd.ExcelFile(file)
-            elif isinstance(file, bytes):
-                excel_file = pd.ExcelFile(io.BytesIO(file))
             else:
                 raise ValueError("Unsupported file type")
             

@@ -1,7 +1,10 @@
+import os
+
 from flask import request, jsonify
 from werkzeug.datastructures import FileStorage
 from services.file_service import FileService
 from models.spreadsheet_info import SpreadsheetData
+from config import Config
 from typing import List
 
 class FileController:
@@ -28,9 +31,11 @@ class FileController:
                 if uploaded_file.filename == '':
                     return jsonify({'error': 'No file selected'}), 400
                 
-                if not uploaded_file.filename.lower().endswith(('.xlsx', '.xls')):
+                _, ext = os.path.splitext(uploaded_file.filename)
+                if ext.lower() not in ('.xlsx', '.xls'):
                     return jsonify({'error': 'Invalid file type. Only XLSX and XLS files are supported'}), 400
-                
+
+
                 spreadsheet_data = self.file_service.analyze_xlsx_file(uploaded_file)
                 
             else:
