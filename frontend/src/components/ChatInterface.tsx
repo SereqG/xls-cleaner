@@ -84,10 +84,10 @@ export function ChatInterface() {
             <div className="mt-4 space-y-2 text-xs text-muted-foreground">
               <p>Try asking:</p>
               <ul className="space-y-1">
-                <li>• "Remove duplicate rows"</li>
-                <li>• "Fill missing values with 0"</li>
-                <li>• "Sort by column A"</li>
-                <li>• "Remove empty rows"</li>
+                <li>• &ldquo;Remove duplicate rows&rdquo;</li>
+                <li>• &ldquo;Fill missing values with 0&rdquo;</li>
+                <li>• &ldquo;Sort by column A&rdquo;</li>
+                <li>• &ldquo;Remove empty rows&rdquo;</li>
               </ul>
             </div>
           </div>
@@ -116,10 +116,10 @@ export function ChatInterface() {
                   )}
                 >
                   <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
-                  {msg.metadata?.stats && (
+                  {msg.metadata?.stats && typeof msg.metadata.stats === 'object' && 'rows' in msg.metadata.stats && 'columns' in msg.metadata.stats && (
                     <div className="mt-2 border-t border-border/50 pt-2 text-xs opacity-70">
                       <p>
-                        Result: {msg.metadata.stats.rows} rows × {msg.metadata.stats.columns} columns
+                        Result: {String(msg.metadata.stats.rows)} rows × {String(msg.metadata.stats.columns)} columns
                       </p>
                     </div>
                   )}

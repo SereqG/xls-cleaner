@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useAISession } from '@/contexts/AISessionContext'
 import { aiApi } from '@/lib/ai-api'
 import { useUser } from '@clerk/nextjs'
+import React from 'react'
 
 export function useAIUpload() {
   const { setSession, setTokensRemaining } = useAISession()
@@ -99,7 +100,7 @@ export function useAITokens() {
   const { setTokensRemaining } = useAISession()
   const { user } = useUser()
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['ai-tokens', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated')
@@ -107,10 +108,16 @@ export function useAITokens() {
       return aiApi.getTokens(user.id)
     },
     enabled: !!user,
-    onSuccess: (data) => {
-      setTokensRemaining(data.tokens_remaining)
-    },
   })
+
+  // Update tokens when data changes
+  React.useEffect(() => {
+    if (query.data) {
+      setTokensRemaining(query.data.tokens_remaining)
+    }
+  }, [query.data, setTokensRemaining])
+
+  return query
 }
 
 export function useAIDownload() {
