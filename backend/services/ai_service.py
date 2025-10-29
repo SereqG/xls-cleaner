@@ -44,10 +44,14 @@ If the user's request is unclear or cannot be performed with these operations, r
 Only respond with valid JSON. Do not include any other text or explanation outside the JSON."""
     
     def __init__(self):
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY environment variable is required for AI Mode")
+        
         self.llm = ChatOpenAI(
             model="gpt-3.5-turbo",
             temperature=0.1,
-            api_key=os.environ.get("OPENAI_API_KEY")
+            api_key=api_key
         )
     
     def parse_user_request(

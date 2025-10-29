@@ -16,12 +16,19 @@ class AIController:
     """Controller for AI-powered Excel operations"""
     
     def __init__(self):
-        self.ai_service = AIExcelService()
+        self._ai_service = None
         self.file_service = FileService()
         self.upload_folder = Config.UPLOAD_FOLDER
         
         # Ensure upload folder exists
         os.makedirs(self.upload_folder, exist_ok=True)
+    
+    @property
+    def ai_service(self):
+        """Lazy-load AI service to avoid initialization errors if OpenAI key is missing"""
+        if self._ai_service is None:
+            self._ai_service = AIExcelService()
+        return self._ai_service
     
     def upload_file(self):
         """
