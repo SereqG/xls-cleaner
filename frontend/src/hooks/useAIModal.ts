@@ -50,11 +50,9 @@ export function useAIModal(open: boolean) {
     if (showSheetSelection) {
       return AI_MODAL_STEPS
     }
-    // Skip sheet selection if only one sheet
     return AI_MODAL_STEPS.filter(step => step.id !== 'select-sheet')
   }, [showSheetSelection])
 
-  // Initialize state when modal opens
   useEffect(() => {
     if (open && uploadedFile) {
       setState(prev => ({
@@ -69,7 +67,6 @@ export function useAIModal(open: boolean) {
     }
   }, [open, uploadedFile])
 
-  // Cleanup session when modal closes
   useEffect(() => {
     if (!open && state.sessionId) {
       const cleanup = async () => {
@@ -133,7 +130,6 @@ export function useAIModal(open: boolean) {
   const sendMessage = useCallback(async (message: string) => {
     if (!state.sessionId) return
 
-    // Add user message immediately
     const userMessage: ChatMessage = {
       role: 'user',
       content: message,
@@ -151,7 +147,6 @@ export function useAIModal(open: boolean) {
       const token = await getToken()
       const result = await sendAIMessage(state.sessionId, message, token || undefined)
 
-      // Add assistant response
       const assistantMessage: ChatMessage = {
         role: 'assistant',
         content: result.response,
@@ -202,12 +197,10 @@ export function useAIModal(open: boolean) {
 
     const nextStep = steps[nextStepIndex].id
 
-    // Special handling for transitioning to chat step
     if (nextStep === 'chat' && !state.sessionId && state.selectedSheet) {
       await startSession(state.selectedSheet)
     }
 
-    // Special handling for transitioning to preview step
     if (nextStep === 'preview') {
       await loadPreview()
     }

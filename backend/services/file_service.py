@@ -42,7 +42,6 @@ class FileService:
                     col_type = self._determine_column_type(df[col_name])
                     columns.append(ColumnInfo(name=str(col_name), type=col_type))
                 
-                # Convert DataFrame to records and ensure JSON serializable types
                 snippet_raw = df.head(5).fillna("").to_dict('records')
                 snippet = self._make_json_serializable(snippet_raw)
                 
