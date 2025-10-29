@@ -1,9 +1,10 @@
 "use client"
 
 import React from 'react'
-import { Settings, Sparkles } from 'lucide-react'
+import { Settings, Sparkles, Loader2 } from 'lucide-react'
 import { ActionButton } from './ActionButton'
 import { FormatDataModal } from './format-data-modal'
+import { AIModeModal } from './AIModeModal'
 import { useFileActions } from '@/hooks'
 
 export function FileActions() {
@@ -13,6 +14,7 @@ export function FileActions() {
     setIsModalOpen,
     handleFormatData,
     handleUseAI,
+    isAIUploading,
   } = useFileActions()
 
   return (
@@ -31,16 +33,17 @@ export function FileActions() {
         
         <ActionButton
           onClick={handleUseAI}
-          disabled={!uploadedFile}
-          icon={Sparkles}
+          disabled={!uploadedFile || isAIUploading}
+          icon={isAIUploading ? Loader2 : Sparkles}
           className="bg-green-600 text-white hover:bg-green-700"
-          enableHoverEffects={!!uploadedFile}
+          enableHoverEffects={!!uploadedFile && !isAIUploading}
         >
-          Use AI for Cleaning
+          {isAIUploading ? 'Initializing AI...' : 'Use AI for Cleaning'}
         </ActionButton>
       </div>
 
       <FormatDataModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <AIModeModal />
     </>
   )
 }
