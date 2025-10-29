@@ -98,8 +98,8 @@ export function useAIModal(open: boolean) {
     }
   }, [state])
 
-  const startSession = useCallback(async (sheetName: string) => {
-    if (!uploadedFile) return
+  const startSession = useCallback(async (sheetName: string): Promise<boolean> => {
+    if (!uploadedFile) return false
 
     setState(prev => ({ ...prev, isProcessing: true, error: null }))
 
@@ -118,12 +118,14 @@ export function useAIModal(open: boolean) {
         dailyLimit: result.daily_limit,
         isProcessing: false,
       }))
+      return true
     } catch (error) {
       setState(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Failed to start session',
         isProcessing: false,
       }))
+      return false
     }
   }, [uploadedFile, getToken])
 
@@ -198,7 +200,11 @@ export function useAIModal(open: boolean) {
     const nextStep = steps[nextStepIndex].id
 
     if (nextStep === 'chat' && !state.sessionId && state.selectedSheet) {
-      await startSession(state.selectedSheet)
+      const sessionCreated = await startSession(state.selectedSheet)
+      if (!sessionCreated) {
+        // Don't proceed to chat step if session creation failed
+        return
+      }
     }
 
     if (nextStep === 'preview') {
