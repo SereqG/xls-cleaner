@@ -4,6 +4,7 @@ import React from 'react'
 import { Settings, Sparkles } from 'lucide-react'
 import { ActionButton } from './ActionButton'
 import { FormatDataModal } from './format-data-modal'
+import { AIModal } from './ai-modal'
 import { useFileActions } from '@/hooks'
 
 export function FileActions() {
@@ -13,6 +14,8 @@ export function FileActions() {
     setIsModalOpen,
     handleFormatData,
     handleUseAI,
+    isAIModalOpen,
+    setIsAIModalOpen,
   } = useFileActions()
 
   return (
@@ -41,6 +44,7 @@ export function FileActions() {
       </div>
 
       <FormatDataModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <AIModal open={isAIModalOpen} onOpenChange={setIsAIModalOpen} />
     </>
   )
 }

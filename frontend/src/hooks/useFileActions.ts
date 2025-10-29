@@ -4,6 +4,7 @@ import { useFile } from '@/contexts/FileContext'
 export function useFileActions() {
   const { uploadedFile } = useFile()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false)
 
   const handleFormatData = () => {
     if (uploadedFile) {
@@ -13,8 +14,7 @@ export function useFileActions() {
 
   const handleUseAI = () => {
     if (uploadedFile) {
-      console.log('Use AI for Cleaning clicked for:', uploadedFile.file_metadata.name)
-      console.log('Available sheets:', uploadedFile.spreadsheet_data.map(sheet => sheet.spreadsheet_name))
+      setIsAIModalOpen(true)
     }
   }
 
@@ -22,6 +22,8 @@ export function useFileActions() {
     uploadedFile,
     isModalOpen,
     setIsModalOpen,
+    isAIModalOpen,
+    setIsAIModalOpen,
     handleFormatData,
     handleUseAI,
   }

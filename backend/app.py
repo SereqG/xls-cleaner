@@ -4,6 +4,7 @@ import logging
 from config import Config
 
 from routes.file_routes import file_bp
+from routes.ai_routes import ai_bp
 
 def create_app():
     app = Flask(__name__)
@@ -16,6 +17,7 @@ def create_app():
     
     
     app.register_blueprint(file_bp)
+    app.register_blueprint(ai_bp)
     
     return app
 
