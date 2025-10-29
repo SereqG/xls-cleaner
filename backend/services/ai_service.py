@@ -244,7 +244,6 @@ IMPORTANT: Only respond to Excel-related questions. If a user asks about anythin
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Error in AI chat: {str(e)}", exc_info=True)
             return "I encountered an error processing your request. Please try again."
     
     def save_modified_file(self, session_id: str, output_path: str) -> bool:

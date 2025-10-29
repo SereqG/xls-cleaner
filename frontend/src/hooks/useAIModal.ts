@@ -230,5 +230,6 @@ export function useAIModal(open: boolean) {
     handleBack,
     updateState,
     sendMessage,
+    startSession
   }
 }

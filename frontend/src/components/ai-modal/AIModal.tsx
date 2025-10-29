@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, {  useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ModalStepsBreadcrumb } from '@/components/format-data-modal/ModalStepsBreadcrumb'
 import { ModalNavigation } from '@/components/format-data-modal/ModalNavigation'
@@ -23,7 +23,14 @@ export function AIModal({ open, onOpenChange }: AIModalProps) {
     handleBack,
     updateState,
     sendMessage,
+    startSession
   } = useAIModal(open)
+
+  useEffect(() => {
+    if (open && uploadedFile) {
+      startSession(uploadedFile.file_metadata.name)
+    }
+  }, [open, uploadedFile])
 
   if (!uploadedFile) return null
 

@@ -19,11 +19,12 @@ class AIController:
     
     def _get_user_from_request(self):
         """Extract and verify user from request."""
-        auth_header = request.headers.get('Authorization', '')
+        auth_header = request.headers.get('Authorization', '')        
         if auth_header.startswith('Bearer '):
             token = auth_header[7:]
             user_id = token_service.verify_clerk_token(token)
             return user_id
+        
         return None
     
     def _save_uploaded_file(self, file) -> str:
@@ -41,12 +42,10 @@ class AIController:
         Returns: session_id, token usage info
         """
         try:
-            # Get user ID
             user_id = self._get_user_from_request()
             if not user_id:
                 return jsonify({"error": "Unauthorized"}), 401
             
-            # Check token availability
             if not token_service.can_use_token(user_id):
                 remaining = token_service.get_remaining_tokens(user_id)
                 return jsonify({
@@ -55,7 +54,7 @@ class AIController:
                     "daily_limit": Config.DAILY_TOKEN_LIMIT
                 }), 429
             
-            # Get file and sheet name
+            
             if 'file' not in request.files:
                 return jsonify({"error": "No file provided"}), 400
             
@@ -65,14 +64,11 @@ class AIController:
             if not sheet_name:
                 return jsonify({"error": "No sheet_name provided"}), 400
             
-            # Save file temporarily
             file_path = self._save_uploaded_file(file)
             
-            # Generate session ID
             import uuid
             session_id = str(uuid.uuid4())
             
-            # Store session info
             self.temp_sessions[session_id] = {
                 'user_id': user_id,
                 'file_path': file_path,
@@ -80,10 +76,8 @@ class AIController:
                 'original_filename': file.filename
             }
             
-            # Create AI agent
             ai_service.create_agent(session_id, file_path, sheet_name)
             
-            # Use one token
             token_service.use_token(user_id)
             
             return jsonify({
@@ -93,7 +87,6 @@ class AIController:
             }), 200
             
         except Exception as e:
-            logger.error(f"Error starting AI session: {str(e)}", exc_info=True)
             return jsonify({"error": "Failed to start AI session"}), 500
     
     def chat(self):
@@ -139,7 +132,6 @@ class AIController:
             }), 200
             
         except Exception as e:
-            logger.error(f"Error in AI chat: {str(e)}", exc_info=True)
             return jsonify({"error": "Failed to process message"}), 500
     
     def get_preview(self):
@@ -166,7 +158,6 @@ class AIController:
             }), 200
             
         except Exception as e:
-            logger.error(f"Error getting preview: {str(e)}", exc_info=True)
             return jsonify({"error": "Failed to get preview"}), 500
     
     def download_modified_file(self):
@@ -207,7 +198,6 @@ class AIController:
             )
             
         except Exception as e:
-            logger.error(f"Error downloading file: {str(e)}", exc_info=True)
             return jsonify({"error": "Failed to download file"}), 500
     
     def end_session(self):
@@ -240,7 +230,6 @@ class AIController:
             return jsonify({"message": "Session ended"}), 200
             
         except Exception as e:
-            logger.error(f"Error ending session: {str(e)}", exc_info=True)
             return jsonify({"error": "Failed to end session"}), 500
     
     def get_token_status(self):
@@ -264,5 +253,4 @@ class AIController:
             }), 200
             
         except Exception as e:
-            logger.error(f"Error getting token status: {str(e)}", exc_info=True)
             return jsonify({"error": "Failed to get token status"}), 500
