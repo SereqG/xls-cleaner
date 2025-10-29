@@ -5,7 +5,6 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.tools import Tool
 from typing import Dict, List, Any
 import pandas as pd
-import openpyxl
 from openpyxl import load_workbook
 import os
 from config import Config
