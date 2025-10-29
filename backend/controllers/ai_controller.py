@@ -7,7 +7,10 @@ from services.file_service import FileService
 from database import get_db_session
 import os
 import uuid
+import logging
 from config import Config
+
+logger = logging.getLogger(__name__)
 
 class AIController:
     """Controller for AI-powered Excel operations"""
@@ -106,7 +109,8 @@ class AIController:
                 db.close()
                 
         except Exception as e:
-            return jsonify({'error': f'Error uploading file: {str(e)}'}), 500
+            logger.error(f'Error uploading file: {str(e)}', exc_info=True)
+            return jsonify({'error': 'Failed to upload file. Please try again.'}), 500
     
     def send_message(self):
         """
@@ -253,7 +257,8 @@ class AIController:
                 db.close()
                 
         except Exception as e:
-            return jsonify({'error': f'Error processing message: {str(e)}'}), 500
+            logger.error(f'Error processing message: {str(e)}', exc_info=True)
+            return jsonify({'error': 'Failed to process message. Please try again.'}), 500
     
     def get_session(self):
         """
@@ -286,7 +291,8 @@ class AIController:
                 db.close()
                 
         except Exception as e:
-            return jsonify({'error': f'Error getting session: {str(e)}'}), 500
+            logger.error(f'Error getting session: {str(e)}', exc_info=True)
+            return jsonify({'error': 'Failed to retrieve session.'}), 500
     
     def get_preview(self):
         """
@@ -337,7 +343,8 @@ class AIController:
                 db.close()
                 
         except Exception as e:
-            return jsonify({'error': f'Error getting preview: {str(e)}'}), 500
+            logger.error(f'Error getting preview: {str(e)}', exc_info=True)
+            return jsonify({'error': 'Failed to retrieve preview.'}), 500
     
     def download_file(self):
         """
@@ -378,7 +385,8 @@ class AIController:
                 db.close()
                 
         except Exception as e:
-            return jsonify({'error': f'Error downloading file: {str(e)}'}), 500
+            logger.error(f'Error downloading file: {str(e)}', exc_info=True)
+            return jsonify({'error': 'Failed to download file.'}), 500
     
     def get_user_tokens(self):
         """
@@ -410,7 +418,8 @@ class AIController:
                 db.close()
                 
         except Exception as e:
-            return jsonify({'error': f'Error getting tokens: {str(e)}'}), 500
+            logger.error(f'Error getting tokens: {str(e)}', exc_info=True)
+            return jsonify({'error': 'Failed to retrieve token information.'}), 500
     
     def update_selected_sheet(self):
         """
@@ -457,4 +466,5 @@ class AIController:
                 db.close()
                 
         except Exception as e:
-            return jsonify({'error': f'Error updating sheet: {str(e)}'}), 500
+            logger.error(f'Error updating sheet: {str(e)}', exc_info=True)
+            return jsonify({'error': 'Failed to update selected sheet.'}), 500

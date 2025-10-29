@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useAISession } from '@/contexts/AISessionContext'
 import { aiApi } from '@/lib/ai-api'
 import { useUser } from '@clerk/nextjs'
-import React from 'react'
+import { useEffect } from 'react'
 
 export function useAIUpload() {
   const { setSession, setTokensRemaining } = useAISession()
@@ -111,7 +111,7 @@ export function useAITokens() {
   })
 
   // Update tokens when data changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (query.data) {
       setTokensRemaining(query.data.tokens_remaining)
     }

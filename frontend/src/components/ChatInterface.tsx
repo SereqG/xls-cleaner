@@ -1,11 +1,21 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
-import { useAISession } from '@/contexts/AISessionContext'
+import { useAISession, type AIMessage } from '@/contexts/AISessionContext'
 import { useAIChat } from '@/hooks/useAI'
 import { Button } from '@/components/ui/button'
 import { Send, Loader2, Bot, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+// Helper function to check if message metadata has valid stats
+function hasValidStats(msg: AIMessage): boolean {
+  return !!(
+    msg.metadata?.stats &&
+    typeof msg.metadata.stats === 'object' &&
+    'rows' in msg.metadata.stats &&
+    'columns' in msg.metadata.stats
+  )
+}
 
 export function ChatInterface() {
   const { session } = useAISession()
@@ -116,10 +126,10 @@ export function ChatInterface() {
                   )}
                 >
                   <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
-                  {msg.metadata?.stats && typeof msg.metadata.stats === 'object' && 'rows' in msg.metadata.stats && 'columns' in msg.metadata.stats && (
+                  {hasValidStats(msg) && (
                     <div className="mt-2 border-t border-border/50 pt-2 text-xs opacity-70">
                       <p>
-                        Result: {String(msg.metadata.stats.rows)} rows × {String(msg.metadata.stats.columns)} columns
+                        Result: {String(msg.metadata!.stats!.rows)} rows × {String(msg.metadata!.stats!.columns)} columns
                       </p>
                     </div>
                   )}
