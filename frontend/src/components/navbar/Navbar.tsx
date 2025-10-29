@@ -50,14 +50,16 @@ export const Navbar = () => {
           </SignedOut>
         </div>
         <SignedIn>
-          <UserButton 
-            afterSignOutUrl="/"
-            appearance={{
-              elements: {
-                avatarBox: "w-9 h-9"
-              }
-            }}
-          />
+          <div suppressHydrationWarning>
+            <UserButton 
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "w-9 h-9"
+                }
+              }}
+            />
+          </div>
         </SignedIn>
         <ThemeToggle />
         <Select value={language} onValueChange={handleLanguageChange}>

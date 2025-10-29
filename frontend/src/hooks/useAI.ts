@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAISession } from '@/contexts/AISessionContext'
 import { aiApi } from '@/lib/ai-api'
 import { useUser } from '@clerk/nextjs'
@@ -34,6 +34,7 @@ export function useAIUpload() {
 export function useAIChat() {
   const { session, setSession, setTokensRemaining } = useAISession()
   const { user } = useUser()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (message: string) => {
@@ -77,6 +78,11 @@ export function useAIChat() {
       })
       
       setTokensRemaining(data.tokens_remaining)
+      
+      // Invalidate preview cache if there was an operation that might have changed the data
+      if (data.operation) {
+        queryClient.invalidateQueries({ queryKey: ['ai-preview'] })
+      }
     },
   })
 }

@@ -299,8 +299,31 @@ class PandasExecutor:
     
     def get_preview(self, n_rows: int = 5) -> List[Dict[str, Any]]:
         """Get first N rows as preview"""
-        preview_df = self.df.head(n_rows).fillna("")
-        return preview_df.to_dict('records')
+        preview_df = self.df.head(n_rows).copy()
+        
+        # Handle NaT values in datetime columns first
+        for col in preview_df.columns:
+            if pd.api.types.is_datetime64_any_dtype(preview_df[col]):
+                # Replace NaT with None for datetime columns
+                preview_df[col] = preview_df[col].where(preview_df[col].notna(), None)
+        
+        # Handle other NaN values
+        preview_df = preview_df.fillna("")
+        
+        # Convert to records with proper serialization
+        records = []
+        for _, row in preview_df.iterrows():
+            record = {}
+            for col, value in row.items():
+                if pd.isna(value) or value is pd.NaT:
+                    record[col] = None
+                elif isinstance(value, (pd.Timestamp, np.datetime64)):
+                    record[col] = str(value) if pd.notna(value) else None
+                else:
+                    record[col] = value
+            records.append(record)
+        
+        return records
     
     def save_to_file(self, output_path: str, sheet_name: Optional[str] = None) -> str:
         """Save DataFrame to Excel file"""

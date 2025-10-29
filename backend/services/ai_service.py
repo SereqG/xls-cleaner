@@ -76,7 +76,11 @@ Only respond with valid JSON. Do not include any other text or explanation outsi
         # Add sheet context if available
         if sheet_info:
             context = f"\n\nCurrent sheet information:\n"
-            context += f"Columns: {', '.join(sheet_info.get('columns', []))}\n"
+            column_names = sheet_info.get('column_names', [])
+            if isinstance(column_names, list):
+                context += f"Columns: {', '.join(column_names)}\n"
+            else:
+                context += f"Number of columns: {sheet_info.get('columns', 0)}\n"
             context += f"Number of rows: {sheet_info.get('rows', 0)}\n"
             messages.append(SystemMessage(content=context))
         

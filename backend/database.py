@@ -1,16 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from models.user import User, Base as UserBase
-from models.ai_session import AISession, Base as SessionBase
 import os
 
-# Use the same Base for all models
-from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
-
-# Import models to register them with Base
-User.__bases__ = (Base,)
-AISession.__bases__ = (Base,)
+# Import the shared Base and models
+from models.base import Base
+from models.user import User
+from models.ai_session import AISession
 
 # Database URL from environment or default to SQLite
 DATABASE_URL = os.environ.get(

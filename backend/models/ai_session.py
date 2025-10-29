@@ -1,9 +1,7 @@
 from sqlalchemy import Column, String, Integer, DateTime, Text, ForeignKey, JSON
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timezone
 import json
-
-Base = declarative_base()
+from .base import Base
 
 class AISession(Base):
     __tablename__ = 'ai_sessions'
