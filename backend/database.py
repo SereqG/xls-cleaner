@@ -14,12 +14,22 @@ DATABASE_URL = os.environ.get(
 )
 
 # Create engine
-engine = create_engine(
-    DATABASE_URL,
-    echo=False,  # Set to True for SQL query logging
-    pool_pre_ping=True,  # Verify connections before using
-    future=True
-)
+if DATABASE_URL.startswith("sqlite"):
+    from sqlalchemy.pool import NullPool
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,  # Set to True for SQL query logging
+        connect_args={"check_same_thread": False},
+        poolclass=NullPool,
+        future=True
+    )
+else:
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,  # Set to True for SQL query logging
+        pool_pre_ping=True,  # Verify connections before using
+        future=True
+    )
 
 # Create session factory
 SessionLocal = scoped_session(
