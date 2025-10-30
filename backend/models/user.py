@@ -13,9 +13,10 @@ class User(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
-    def get_remaining_tokens(self):
+    def get_remaining_tokens(self, session=None):
         """Get the number of tokens remaining for today"""
-        self._reset_tokens_if_needed()
+        if session:
+            self._reset_tokens_if_needed(session)
         return self.daily_tokens - self.tokens_used_today
     
     def _reset_tokens_if_needed(self, session):
@@ -34,9 +35,9 @@ class User(Base):
         self.tokens_used_today = user_locked.tokens_used_today
         self.last_token_reset = user_locked.last_token_reset
     
-    def can_use_token(self):
+    def can_use_token(self, session=None):
         """Check if user has tokens available"""
-        return self.get_remaining_tokens() > 0
+        return self.get_remaining_tokens(session) > 0
     
     def use_token(self, session):
         """

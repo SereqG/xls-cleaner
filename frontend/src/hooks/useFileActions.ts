@@ -21,17 +21,14 @@ export function useFileActions() {
   const handleUseAI = async () => {
     if (!uploadedFile) return
     
-    // Check if user is signed in
     if (!isSignedIn || !user) {
       toast.error('Please sign in to use AI Mode')
       return
     }
     
     try {
-      // Upload file to AI backend
       await aiUpload.mutateAsync(uploadedFile.file_metadata)
       
-      // Open AI modal
       setIsAIModalOpen(true)
     } catch (error) {
       console.error('Failed to initialize AI session:', error)

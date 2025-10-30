@@ -50,14 +50,12 @@ export function useAIChat() {
     onSuccess: (data, message) => {
       if (!session) return
       
-      // Add user message
       const userMessage = {
         role: 'user' as const,
         content: message,
         timestamp: new Date().toISOString(),
       }
       
-      // Add AI response
       const aiMessage = {
         role: 'assistant' as const,
         content: data.message,
@@ -79,7 +77,6 @@ export function useAIChat() {
       
       setTokensRemaining(data.tokens_remaining)
       
-      // Invalidate preview cache if there was an operation that might have changed the data
       if (data.operation) {
         queryClient.invalidateQueries({ queryKey: ['ai-preview'] })
       }
@@ -116,7 +113,6 @@ export function useAITokens() {
     enabled: !!user,
   })
 
-  // Update tokens when data changes
   useEffect(() => {
     if (query.data) {
       setTokensRemaining(query.data.tokens_remaining)
@@ -139,7 +135,6 @@ export function useAIDownload() {
     onSuccess: (blob) => {
       if (!session) return
       
-      // Create download link
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
