@@ -17,8 +17,8 @@ export function MainContent({
   onShowPreview
 }: MainContentProps) {
   return (
-    <>
-      <div className="flex h-[calc(100%-73px)] overflow-hidden">
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex flex-1 overflow-hidden">
         <ChatArea showPreview={showPreview} />
         
         {showPreview && (
@@ -32,6 +32,6 @@ export function MainContent({
           onShowPreview={onShowPreview} 
         />
       )}
-    </>
+    </div>
   )
 }

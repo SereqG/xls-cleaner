@@ -8,7 +8,7 @@ interface ChatAreaProps {
 export function ChatArea({ showPreview }: ChatAreaProps) {
   return (
     <div className={cn(
-      "flex flex-col border-r border-border transition-all",
+      "flex flex-col border-r border-border transition-all h-full",
       showPreview ? "w-1/2" : "w-full"
     )}>
       <ChatInterface />
