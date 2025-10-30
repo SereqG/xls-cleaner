@@ -165,7 +165,20 @@ class PandasExecutor:
         
         # Parse and apply condition safely
         if 'contains' in condition.lower():
-            search_term = condition.split("'")[1] if "'" in condition else condition.split('"')[1]
+            if "'" in condition:
+                parts = condition.split("'")
+                if len(parts) > 1:
+                    search_term = parts[1]
+                else:
+                    return {'summary': f"Invalid condition format: {condition}"}
+            elif '"' in condition:
+                parts = condition.split('"')
+                if len(parts) > 1:
+                    search_term = parts[1]
+                else:
+                    return {'summary': f"Invalid condition format: {condition}"}
+            else:
+                return {'summary': f"Condition must contain quotes for 'contains': {condition}"}
             self.df = self.df[self.df[column].astype(str).str.contains(search_term, na=False)]
         elif '>=' in condition:
             value = float(condition.split('>=')[1].strip())
