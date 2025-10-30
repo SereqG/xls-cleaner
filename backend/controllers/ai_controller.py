@@ -178,7 +178,7 @@ class AIController:
                             session.file_path, 
                             session.selected_sheet
                         )
-                    except:
+                    except Exception:
                         pass
                 
                 # Parse user request with AI
