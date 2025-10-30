@@ -364,7 +364,7 @@ class PandasExecutor:
                 with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
                     for name, df in sheets_dict.items():
                         df.to_excel(writer, sheet_name=name, index=False)
-            except:
+            except Exception:
                 # If error, just save current sheet
                 self.df.to_excel(output_path, sheet_name=sheet_name, index=False)
         else:
