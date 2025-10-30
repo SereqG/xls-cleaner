@@ -18,22 +18,39 @@ class User(Base):
         self._reset_tokens_if_needed()
         return self.daily_tokens - self.tokens_used_today
     
-    def _reset_tokens_if_needed(self):
-        """Reset token counter if it's a new day"""
+    def _reset_tokens_if_needed(self, session):
+        """
+        Reset token counter if it's a new day.
+        This method must be called within a transaction and passed a SQLAlchemy session.
+        Uses row-level locking to prevent race conditions.
+        """
+        # Lock the user row for update
+        user_locked = session.query(User).filter_by(id=self.id).with_for_update().one()
         now = datetime.now(timezone.utc)
-        if self.last_token_reset.date() < now.date():
-            self.tokens_used_today = 0
-            self.last_token_reset = now
+        if user_locked.last_token_reset.date() < now.date():
+            user_locked.tokens_used_today = 0
+            user_locked.last_token_reset = now
+        # Update self to reflect changes
+        self.tokens_used_today = user_locked.tokens_used_today
+        self.last_token_reset = user_locked.last_token_reset
     
     def can_use_token(self):
         """Check if user has tokens available"""
         return self.get_remaining_tokens() > 0
     
-    def use_token(self):
-        """Deduct one token from user's daily allowance"""
-        self._reset_tokens_if_needed()
-        if self.can_use_token():
-            self.tokens_used_today += 1
+    def use_token(self, session):
+        """
+        Deduct one token from user's daily allowance.
+        This method must be called within a transaction and passed a SQLAlchemy session.
+        Uses row-level locking to prevent race conditions.
+        """
+        self._reset_tokens_if_needed(session)
+        # Lock the user row for update
+        user_locked = session.query(User).filter_by(id=self.id).with_for_update().one()
+        if user_locked.daily_tokens - user_locked.tokens_used_today > 0:
+            user_locked.tokens_used_today += 1
+            # Update self to reflect changes
+            self.tokens_used_today = user_locked.tokens_used_today
             return True
         return False
     
