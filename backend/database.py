@@ -5,7 +5,7 @@ import os
 # Import the shared Base and models
 from models.base import Base
 from models.user import User
-from models.ai_session import AISession
+import models.ai_session
 
 # Database URL from environment or default to SQLite
 DATABASE_URL = os.environ.get(
