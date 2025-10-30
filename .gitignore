@@ -57,6 +57,10 @@ coverage/
 tmp/
 temp/
 
+# Upload directories
+uploads/
+backend/uploads/
+
 # Local Netlify folder
 .netlify/
 
@@ -126,6 +130,10 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+
+# SQLite databases
+*.db
+xls_cleaner.db
 
 # Flask stuff:
 instance/
