@@ -4,18 +4,23 @@ import logging
 from config import Config
 
 from routes.file_routes import file_bp
+from routes.ai_routes import ai_bp
+from database import init_db
 
 def create_app():
     app = Flask(__name__)
     
-    app.config['MAX_CONTENT_LENGTH'] = Config.MAX_CONTENT_LENGTH
+    app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB for AI mode
     
     CORS(app, origins=Config.CORS_ORIGINS)
     
     logging.basicConfig(level=getattr(logging, Config.LOG_LEVEL))
     
+    # Initialize database
+    init_db()
     
     app.register_blueprint(file_bp)
+    app.register_blueprint(ai_bp)
     
     return app
 
