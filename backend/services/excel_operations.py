@@ -4,7 +4,6 @@ from typing import Dict, Any, List, Optional
 import re
 import io
 import os
-from datetime import datetime
 
 class ExcelOperationValidator:
     """Validates that AI-requested operations are safe Excel operations"""
