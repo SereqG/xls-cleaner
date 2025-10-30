@@ -3,6 +3,7 @@ import { useFile } from '@/contexts/FileContext'
 import { useAISession } from '@/contexts/AISessionContext'
 import { useAIUpload } from './useAI'
 import { useUser } from '@clerk/nextjs'
+import { toast } from 'sonner'
 
 export function useFileActions() {
   const { uploadedFile } = useFile()
@@ -22,7 +23,7 @@ export function useFileActions() {
     
     // Check if user is signed in
     if (!isSignedIn || !user) {
-      alert('Please sign in to use AI Mode')
+      toast.error('Please sign in to use AI Mode')
       return
     }
     
@@ -34,7 +35,7 @@ export function useFileActions() {
       setIsAIModalOpen(true)
     } catch (error) {
       console.error('Failed to initialize AI session:', error)
-      alert('Failed to initialize AI session. Please try again.')
+      toast.error('Failed to initialize AI session. Please try again.')
     }
   }
 
