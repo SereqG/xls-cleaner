@@ -181,16 +181,28 @@ class PandasExecutor:
                 return {'summary': f"Condition must contain quotes for 'contains': {condition}"}
             self.df = self.df[self.df[column].astype(str).str.contains(search_term, na=False)]
         elif '>=' in condition:
-            value = float(condition.split('>=')[1].strip())
+            try:
+                value = float(condition.split('>=')[1].strip())
+            except ValueError:
+                return {'summary': f"Invalid value for condition: {condition}. Could not parse a number after '>='."}
             self.df = self.df[self.df[column] >= value]
         elif '<=' in condition:
-            value = float(condition.split('<=')[1].strip())
+            try:
+                value = float(condition.split('<=')[1].strip())
+            except ValueError:
+                return {'summary': f"Invalid value for condition: {condition}. Could not parse a number after '<='."}
             self.df = self.df[self.df[column] <= value]
         elif '>' in condition:
-            value = float(condition.split('>')[1].strip())
+            try:
+                value = float(condition.split('>')[1].strip())
+            except ValueError:
+                return {'summary': f"Invalid value for condition: {condition}. Could not parse a number after '>'."}
             self.df = self.df[self.df[column] > value]
         elif '<' in condition:
-            value = float(condition.split('<')[1].strip())
+            try:
+                value = float(condition.split('<')[1].strip())
+            except ValueError:
+                return {'summary': f"Invalid value for condition: {condition}. Could not parse a number after '<'."}
             self.df = self.df[self.df[column] < value]
         elif '==' in condition:
             value = condition.split('==')[1].strip().strip("'\"")
