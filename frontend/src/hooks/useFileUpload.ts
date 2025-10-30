@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useFile } from '@/contexts/FileContext'
 import { analyzeSpreadsheet } from '@/lib/api'
+import { toast } from 'sonner'
 
 export function useFileUpload() {
   const { setUploadedFile, isAnalyzing, setIsAnalyzing } = useFile()
@@ -33,7 +34,7 @@ export function useFileUpload() {
     } catch (error) {
       console.error('Error analyzing file:', error)
       const errorMessage = error instanceof Error ? error.message : 'Error analyzing file. Please try again.'
-      alert(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsAnalyzing(false)
     }
