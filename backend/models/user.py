@@ -6,8 +6,8 @@ class User(Base):
     __tablename__ = 'users'
     
     id = Column(String(255), primary_key=True)  # Clerk user ID
-    email = Column(String(255), unique=True, nullable=False)
-    daily_tokens = Column(Integer, default=50)  # Daily token limit
+    email = Column(String(255), nullable=False)
+    daily_tokens = Column(Integer, default=10)  # Daily token limit
     tokens_used_today = Column(Integer, default=0)
     last_token_reset = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

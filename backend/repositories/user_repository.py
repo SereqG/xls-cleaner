@@ -21,7 +21,7 @@ class UserRepository:
         user = User(
             id=user_id,
             email=email,
-            daily_tokens=50,
+            daily_tokens=10,
             tokens_used_today=0,
             last_token_reset=datetime.now(timezone.utc)
         )
