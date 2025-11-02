@@ -3,6 +3,7 @@ import { useAISession } from '@/contexts/AISessionContext'
 import { aiApi } from '@/lib/ai-api'
 import { useUser } from '@clerk/nextjs'
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 export function useAIUpload() {
   const { setSession, setTokensRemaining } = useAISession()
@@ -27,6 +28,24 @@ export function useAIUpload() {
         conversationHistory: [],
       })
       setTokensRemaining(data.tokens_remaining)
+    },
+    onError: (error: Error) => {
+      // Check if it's a token limit error by trying to parse the response
+      try {
+        const errorData = JSON.parse(error.message)
+        if (errorData.error && errorData.message && errorData.daily_limit) {
+          // Show friendly token limit message
+          toast.error(errorData.error, {
+            description: errorData.message,
+            duration: 6000,
+          })
+          return
+        }
+      } catch {
+        // Not a structured error, fall back to generic message
+      }
+      
+      toast.error(error.message || 'Failed to upload file')
     },
   })
 }
@@ -80,6 +99,24 @@ export function useAIChat() {
       if (data.operation) {
         queryClient.invalidateQueries({ queryKey: ['ai-preview'] })
       }
+    },
+    onError: (error: Error) => {
+      // Check if it's a token limit error by trying to parse the response
+      try {
+        const errorData = JSON.parse(error.message)
+        if (errorData.error && errorData.message && errorData.daily_limit) {
+          // Show friendly token limit message
+          toast.error(errorData.error, {
+            description: errorData.message,
+            duration: 8000,
+          })
+          return
+        }
+      } catch {
+        // Not a structured error, fall back to generic message
+      }
+      
+      toast.error(error.message || 'Failed to send message')
     },
   })
 }

@@ -13,18 +13,18 @@ class AIExcelService:
 You can ONLY perform these operations:
 - drop_duplicates: Remove duplicate rows
 - drop_na: Remove rows with missing values
-- fill_na: Fill missing values with a specified value
-- remove_column: Remove a specific column
-- rename_column: Rename a column
-- filter_rows: Filter rows based on conditions
-- sort_values: Sort data by columns
-- replace_value: Replace specific values
-- change_type: Change column data type
-- trim_whitespace: Remove leading/trailing spaces
-- upper_case, lower_case, capitalize: Change text case
-- round_numbers: Round numeric values
+- fill_na: Fill missing values with a specified value (params: "value", optional "columns")
+- remove_column: Remove a specific column (params: "column")
+- rename_column: Rename a column (params: "old_name", "new_name")
+- filter_rows: Filter rows based on conditions (params: "column", "condition")
+- sort_values: Sort data by columns (params: "columns", optional "ascending")
+- replace_value: Replace specific values (params: "old_value", "new_value", optional "column")
+- change_type: Change column data type (params: "column", "type")
+- trim_whitespace: Remove leading/trailing spaces (optional params: "columns")
+- upper_case, lower_case, capitalize: Change text case (params: "column")
+- round_numbers: Round numeric values (params: "column", optional "decimals")
 - drop_empty_rows, drop_empty_columns: Remove empty rows/columns
-- format_date: Change date format in a column (e.g., from MM/DD/YYYY to DD/MM/YYYY)
+- format_date: Change date format in a column (params: "column", "format")
 
 When a user asks you to perform an operation, respond with a JSON object in this format:
 {
@@ -141,6 +141,12 @@ Only respond with valid JSON. Do not include any other text or explanation outsi
             # Validate the operation
             operation = operation_data.get('operation')
             params = operation_data.get('params', {})
+
+            print("AI suggested operation:", operation)
+            print("With parameters:", params)
+            
+            # Normalize parameter names to match expected format
+            params = self._normalize_params(operation, params)
             
             is_valid, error_msg = ExcelOperationValidator.validate_operation(operation, params)
             
@@ -167,6 +173,21 @@ Only respond with valid JSON. Do not include any other text or explanation outsi
                 'type': 'error',
                 'message': f'Error processing request: {str(e)}'
             }
+    
+    def _normalize_params(self, operation: str, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize parameter names to match expected format"""
+        normalized = params.copy()
+        
+        if operation == 'sort_values':
+            # Handle common alternative parameter names for sort_values
+            if 'by_column' in normalized:
+                normalized['columns'] = normalized.pop('by_column')
+            elif 'column' in normalized:
+                normalized['columns'] = normalized.pop('column')
+            elif 'by' in normalized:
+                normalized['columns'] = normalized.pop('by')
+        
+        return normalized
     
     def execute_operation(
         self, 

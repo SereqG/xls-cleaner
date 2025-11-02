@@ -65,6 +65,10 @@ export const aiApi = {
 
     if (!response.ok) {
       const error = await response.json()
+      // If it's a token limit error, preserve the full error structure
+      if (error.message && error.daily_limit) {
+        throw new Error(JSON.stringify(error))
+      }
       throw new Error(error.error || 'Failed to upload file')
     }
 
@@ -86,6 +90,10 @@ export const aiApi = {
 
     if (!response.ok) {
       const error = await response.json()
+      // If it's a token limit error, preserve the full error structure
+      if (error.message && error.daily_limit) {
+        throw new Error(JSON.stringify(error))
+      }
       throw new Error(error.error || 'Failed to send message')
     }
 
