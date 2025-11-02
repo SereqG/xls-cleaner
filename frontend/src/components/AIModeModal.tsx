@@ -18,21 +18,20 @@ export function AIModeModal() {
     session
   } = useAiModeModal()
 
-  // The end of reviewed code
 
   return (
     <>
       <Dialog open={isAIModalOpen} onOpenChange={setIsAIModalOpen}>
         <DialogContent className="max-w-6xl h-[85vh] p-0 gap-0 flex flex-col">
 
-          
+
           <AIModalHeader
             session={session}
             onSheetSelectorOpen={() => setShowSheetSelector(true)}
             onDownload={handleDownload}
             isDownloading={downloadMutation.isPending}
           />
-          
+
           <MainContent
             session={session}
             showPreview={showPreview}

@@ -17,10 +17,10 @@ export function AIModalHeader({
   isDownloading
 }: AIModalHeaderProps) {
   return (
-    <DialogHeader className="border-b border-border h-20 px-12 py-4">
+    <DialogHeader className="border-b border-border px-12 py-4">
       <div className="flex items-center justify-between">
         <AIModalTitle session={session} />
-        
+
         <AIModalActions
           session={session}
           onSheetSelectorOpen={onSheetSelectorOpen}
