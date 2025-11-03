@@ -19,6 +19,16 @@ def create_app():
     # Initialize database
     init_db()
     
+    # Health check endpoint
+    @app.route('/health', methods=['GET'])
+    def health_check():
+        """Health check endpoint to verify the API is running"""
+        return jsonify({
+            'status': 'healthy',
+            'message': 'XLS Cleaner API is running',
+            'version': '1.0.0'
+        }), 200
+    
     app.register_blueprint(file_bp)
     app.register_blueprint(ai_bp)
     
