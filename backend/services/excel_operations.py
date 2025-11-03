@@ -335,14 +335,15 @@ class PandasExecutor:
         try:
             # First ensure the column is datetime
             if not pd.api.types.is_datetime64_any_dtype(self.df[column]):
-                # Try to convert to datetime first
-                self.df[column] = pd.to_datetime(self.df[column], errors='coerce', dayfirst=True)
+                # Try to convert to datetime with flexible parsing
+                # pandas 2.0+ automatically infers format; removed dayfirst to allow flexible parsing
+                self.df[column] = pd.to_datetime(self.df[column], errors='coerce')
             
             # Count how many valid dates we have
             valid_dates = self.df[column].notna().sum()
             
             if valid_dates == 0:
-                return {'summary': f'No valid dates found in column {column}'}
+                return {'summary': f'No valid dates found in column {column}. Dates should be in a recognizable format (e.g., YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY)'}
             
             # Format the dates
             self.df[column] = self.df[column].dt.strftime(date_format)
