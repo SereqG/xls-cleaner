@@ -24,6 +24,7 @@ class ExcelOperationValidator:
         'round_numbers',
         'drop_empty_rows',
         'drop_empty_columns',
+        'format_date',
     }
     
     @classmethod
@@ -55,6 +56,10 @@ class ExcelOperationValidator:
         if operation == 'replace_value':
             if 'old_value' not in params or 'new_value' not in params:
                 return False, "Both old_value and new_value are required for replace_value"
+        
+        if operation == 'format_date':
+            if 'column' not in params or 'format' not in params:
+                return False, "Both column and format are required for format_date"
         
         return True, ""
 
@@ -318,6 +323,34 @@ class PandasExecutor:
         self.df = self.df.dropna(axis=1, how='all')
         removed = initial_cols - len(self.df.columns)
         return {'summary': f'Removed {removed} empty columns'}
+    
+    def _execute_format_date(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Format date column to specified format"""
+        column = params['column']
+        date_format = params['format']
+        
+        if column not in self.df.columns:
+            return {'summary': f'Column {column} not found'}
+        
+        try:
+            # First ensure the column is datetime
+            if not pd.api.types.is_datetime64_any_dtype(self.df[column]):
+                # Try to convert to datetime first
+                self.df[column] = pd.to_datetime(self.df[column], errors='coerce', dayfirst=True)
+            
+            # Count how many valid dates we have
+            valid_dates = self.df[column].notna().sum()
+            
+            if valid_dates == 0:
+                return {'summary': f'No valid dates found in column {column}'}
+            
+            # Format the dates
+            self.df[column] = self.df[column].dt.strftime(date_format)
+            
+            return {'summary': f'Formatted {valid_dates} dates in column {column} to {date_format} format'}
+            
+        except Exception as e:
+            return {'summary': f'Error formatting dates: {str(e)}. Make sure the column contains valid dates and the format string is correct (e.g., %Y-%m-%d, %d/%m/%Y, %B %d, %Y)'}
     
     def get_preview(self, n_rows: int = 5) -> List[Dict[str, Any]]:
         """Get first N rows as preview"""

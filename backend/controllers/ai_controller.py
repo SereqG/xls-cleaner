@@ -8,6 +8,7 @@ from database import get_db_session
 import os
 import uuid
 import logging
+from datetime import datetime, timezone, timedelta
 from config import Config
 
 logger = logging.getLogger(__name__)
@@ -77,10 +78,15 @@ class AIController:
                 user = user_repo.get_or_create(user_id, email)
                 
                 # Check if user has tokens
-                if not user.can_use_token():
+                if not user.can_use_token(db):
+                    remaining_tokens = user.get_remaining_tokens(db)
+                    next_reset = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
                     return jsonify({
-                        'error': 'No tokens remaining',
-                        'tokens_remaining': 0
+                        'error': "You've reached your daily limit of AI operations! 🤖",
+                        'message': f"Don't worry - you'll get {user.daily_tokens} fresh tokens tomorrow at midnight UTC. Come back then to continue using AI-powered Excel cleaning!",
+                        'tokens_remaining': remaining_tokens,
+                        'daily_limit': user.daily_tokens,
+                        'next_reset': next_reset.isoformat()
                     }), 403
                 
                 # Save file
@@ -109,7 +115,7 @@ class AIController:
                     'file_name': filename,
                     'sheets': sheet_names,
                     'selected_sheet': session.selected_sheet,
-                    'tokens_remaining': user.get_remaining_tokens()
+                    'tokens_remaining': user.get_remaining_tokens(db)
                 }), 201
                 
             finally:
@@ -161,10 +167,16 @@ class AIController:
                 user_repo = UserRepository(db)
                 user = user_repo.get_by_id(user_id)
                 
-                if not user or not user.can_use_token():
+                if not user or not user.can_use_token(db):
+                    remaining_tokens = user.get_remaining_tokens(db) if user else 0
+                    daily_limit = user.daily_tokens if user else 10
+                    next_reset = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
                     return jsonify({
-                        'error': 'No tokens remaining',
-                        'tokens_remaining': 0
+                        'error': "Oops! You've used up all your AI tokens for today! 🎯",
+                        'message': f"Your daily limit is {daily_limit} tokens. They'll refresh at midnight UTC, so check back tomorrow to continue your Excel wizardry!",
+                        'tokens_remaining': remaining_tokens,
+                        'daily_limit': daily_limit,
+                        'next_reset': next_reset.isoformat()
                     }), 403
                 
                 # Add user message to conversation
@@ -202,7 +214,7 @@ class AIController:
                         'type': 'error',
                         'message': ai_response['message'],
                         'suggestion': ai_response.get('suggestion'),
-                        'tokens_remaining': user.get_remaining_tokens()
+                        'tokens_remaining': user.get_remaining_tokens(db)
                     }), 200
                 
                 # Execute the operation
@@ -225,7 +237,7 @@ class AIController:
                     return jsonify({
                         'type': 'error',
                         'message': error_message,
-                        'tokens_remaining': user.get_remaining_tokens()
+                        'tokens_remaining': user.get_remaining_tokens(db)
                     }), 200
                 
                 # Operation succeeded - deduct token
@@ -257,7 +269,7 @@ class AIController:
                     'summary': operation_result['summary'],
                     'preview': preview,
                     'stats': stats,
-                    'tokens_remaining': user.get_remaining_tokens()
+                    'tokens_remaining': user.get_remaining_tokens(db)
                 }), 200
                 
             finally:
@@ -416,7 +428,7 @@ class AIController:
                     return jsonify({'error': 'User not found'}), 404
                 
                 return jsonify({
-                    'tokens_remaining': user.get_remaining_tokens(),
+                    'tokens_remaining': user.get_remaining_tokens(db),
                     'daily_limit': user.daily_tokens,
                     'tokens_used_today': user.tokens_used_today
                 }), 200
