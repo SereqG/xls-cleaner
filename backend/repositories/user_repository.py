@@ -49,5 +49,5 @@ class UserRepository:
         """Get remaining tokens for user"""
         user = self.get_by_id(user_id)
         if user:
-            return user.get_remaining_tokens(self.session)
+            return user.get_remaining_tokens(self.db)
         return 0
