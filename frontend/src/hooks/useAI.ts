@@ -3,6 +3,7 @@ import { useAISession } from '@/contexts/AISessionContext'
 import { aiApi } from '@/lib/ai-api'
 import { useUser } from '@clerk/nextjs'
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 export function useAIUpload() {
   const { setSession, setTokensRemaining } = useAISession()
@@ -11,7 +12,7 @@ export function useAIUpload() {
   return useMutation({
     mutationFn: async (file: File) => {
       if (!user) throw new Error('User not authenticated')
-      
+
       return aiApi.uploadFile({
         file,
         userId: user.id,
@@ -28,6 +29,24 @@ export function useAIUpload() {
       })
       setTokensRemaining(data.tokens_remaining)
     },
+    onError: (error: Error) => {
+      // Check if it's a token limit error by trying to parse the response
+      try {
+        const errorData = JSON.parse(error.message)
+        if (errorData.error && errorData.message && errorData.daily_limit) {
+          // Show friendly token limit message
+          toast.error(errorData.error, {
+            description: errorData.message,
+            duration: 6000,
+          })
+          return
+        }
+      } catch {
+        // Not a structured error, fall back to generic message
+      }
+
+      toast.error(error.message || 'Failed to upload file')
+    },
   })
 }
 
@@ -40,7 +59,7 @@ export function useAIChat() {
     mutationFn: async (message: string) => {
       if (!user) throw new Error('User not authenticated')
       if (!session) throw new Error('No active session')
-      
+
       return aiApi.sendMessage({
         sessionId: session.sessionId,
         message,
@@ -49,15 +68,13 @@ export function useAIChat() {
     },
     onSuccess: (data, message) => {
       if (!session) return
-      
-      // Add user message
+
       const userMessage = {
         role: 'user' as const,
         content: message,
         timestamp: new Date().toISOString(),
       }
-      
-      // Add AI response
+
       const aiMessage = {
         role: 'assistant' as const,
         content: data.message,
@@ -67,7 +84,7 @@ export function useAIChat() {
           stats: data.stats,
         } : undefined,
       }
-      
+
       setSession({
         ...session,
         conversationHistory: [
@@ -76,13 +93,30 @@ export function useAIChat() {
           aiMessage,
         ],
       })
-      
+
       setTokensRemaining(data.tokens_remaining)
-      
-      // Invalidate preview cache if there was an operation that might have changed the data
+
       if (data.operation) {
         queryClient.invalidateQueries({ queryKey: ['ai-preview'] })
       }
+    },
+    onError: (error: Error) => {
+      // Check if it's a token limit error by trying to parse the response
+      try {
+        const errorData = JSON.parse(error.message)
+        if (errorData.error && errorData.message && errorData.daily_limit) {
+          // Show friendly token limit message
+          toast.error(errorData.error, {
+            description: errorData.message,
+            duration: 8000,
+          })
+          return
+        }
+      } catch {
+        // Not a structured error, fall back to generic message
+      }
+
+      toast.error(error.message || 'Failed to send message')
     },
   })
 }
@@ -95,7 +129,7 @@ export function useAIPreview() {
     queryKey: ['ai-preview', session?.sessionId],
     queryFn: async () => {
       if (!user || !session) throw new Error('No active session')
-      
+
       return aiApi.getPreview(session.sessionId, user.id)
     },
     enabled: !!session && !!user,
@@ -110,13 +144,12 @@ export function useAITokens() {
     queryKey: ['ai-tokens', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated')
-      
+
       return aiApi.getTokens(user.id)
     },
     enabled: !!user,
   })
 
-  // Update tokens when data changes
   useEffect(() => {
     if (query.data) {
       setTokensRemaining(query.data.tokens_remaining)
@@ -133,13 +166,11 @@ export function useAIDownload() {
   return useMutation({
     mutationFn: async () => {
       if (!user || !session) throw new Error('No active session')
-      
+
       return aiApi.downloadFile(session.sessionId, user.id)
     },
     onSuccess: (blob) => {
       if (!session) return
-      
-      // Create download link
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -159,12 +190,12 @@ export function useSelectSheet() {
   return useMutation({
     mutationFn: async (sheetName: string) => {
       if (!user || !session) throw new Error('No active session')
-      
+
       return aiApi.selectSheet(session.sessionId, sheetName, user.id)
     },
     onSuccess: (_, sheetName) => {
       if (!session) return
-      
+
       setSession({
         ...session,
         selectedSheet: sheetName,

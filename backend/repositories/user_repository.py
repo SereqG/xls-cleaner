@@ -21,7 +21,7 @@ class UserRepository:
         user = User(
             id=user_id,
             email=email,
-            daily_tokens=50,
+            daily_tokens=10,
             tokens_used_today=0,
             last_token_reset=datetime.now(timezone.utc)
         )
@@ -40,7 +40,7 @@ class UserRepository:
     def update_tokens(self, user_id: str) -> bool:
         """Update user's token count after usage"""
         user = self.get_by_id(user_id)
-        if user and user.use_token():
+        if user and user.use_token(self.db):
             self.db.commit()
             return True
         return False
@@ -49,5 +49,5 @@ class UserRepository:
         """Get remaining tokens for user"""
         user = self.get_by_id(user_id)
         if user:
-            return user.get_remaining_tokens()
+            return user.get_remaining_tokens(self.db)
         return 0
