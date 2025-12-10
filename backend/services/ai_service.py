@@ -14,17 +14,17 @@ You can ONLY perform these operations:
 - drop_duplicates: Remove duplicate rows
 - drop_na: Remove rows with missing values
 - fill_na: Fill missing values with a specified value (params: "value", optional "columns")
-- remove_column: Remove a specific column (params: "column")
+- remove_column: Remove one or more columns (params: "column" or "columns")
 - rename_column: Rename a column (params: "old_name", "new_name")
 - filter_rows: Filter rows based on conditions (params: "column", "condition")
 - sort_values: Sort data by columns (params: "columns", optional "ascending")
-- replace_value: Replace specific values (params: "old_value", "new_value", optional "column")
-- change_type: Change column data type (params: "column", "type")
-- trim_whitespace: Remove leading/trailing spaces (optional params: "columns")
-- upper_case, lower_case, capitalize: Change text case (params: "column")
-- round_numbers: Round numeric values (params: "column", optional "decimals")
+- replace_value: Replace specific values (params: "old_value", "new_value", optional "column"/"columns")
+- change_type: Change column data type (params: "column" or "columns", "type")
+- trim_whitespace: Remove leading/trailing spaces (optional params: "columns" to target specific ones)
+- upper_case, lower_case, capitalize: Change text case (params: "column" or "columns")
+- round_numbers: Round numeric values (params: "column" or "columns", optional "decimals")
 - drop_empty_rows, drop_empty_columns: Remove empty rows/columns
-- format_date: Change date format in a column (params: "column", "format")
+- format_date: Change date format in one or more columns (params: "column" or "columns", "format"; if no columns are provided, apply to all date-like columns). If user asks for "DD/MM/YYYY", use "%d/%m/%Y"; "MM/DD/YYYY" => "%m/%d/%Y"; "YYYY-MM-DD" => "%Y-%m-%d".
 
 When a user asks you to perform an operation, respond with a JSON object in this format:
 {
@@ -146,7 +146,7 @@ Only respond with valid JSON. Do not include any other text or explanation outsi
             print("With parameters:", params)
             
             # Normalize parameter names to match expected format
-            params = self._normalize_params(operation, params)
+            params = self._normalize_params(operation, params, user_message)
             
             is_valid, error_msg = ExcelOperationValidator.validate_operation(operation, params)
             
@@ -174,7 +174,7 @@ Only respond with valid JSON. Do not include any other text or explanation outsi
                 'message': f'Error processing request: {str(e)}'
             }
     
-    def _normalize_params(self, operation: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize_params(self, operation: str, params: Dict[str, Any], user_message: str) -> Dict[str, Any]:
         """Normalize parameter names to match expected format"""
         normalized = params.copy()
         
@@ -187,7 +187,51 @@ Only respond with valid JSON. Do not include any other text or explanation outsi
             elif 'by' in normalized:
                 normalized['columns'] = normalized.pop('by')
         
+        if operation == 'format_date':
+            # Map alternative keys to 'format'
+            for alt_key in ['date_format', 'format_string', 'format_str', 'pattern']:
+                if alt_key in normalized and 'format' not in normalized:
+                    normalized['format'] = normalized.pop(alt_key)
+                    break
+            
+            # If format missing, try to infer from user message patterns
+            if 'format' not in normalized:
+                guessed = self._guess_date_format_from_text(user_message)
+                if guessed:
+                    normalized['format'] = guessed
+        
         return normalized
+    
+    def _guess_date_format_from_text(self, text: str) -> Optional[str]:
+        """
+        Best-effort guess of a date format string from natural language text.
+        Returns a strftime-style format or None if not recognized.
+        """
+        lower = text.lower()
+        # Common patterns
+        patterns = {
+            'dd/mm/yyyy': '%d/%m/%Y',
+            'mm/dd/yyyy': '%m/%d/%Y',
+            'yyyy-mm-dd': '%Y-%m-%d',
+            'dd-mm-yyyy': '%d-%m-%Y',
+            'mm-dd-yyyy': '%m-%d-%Y',
+            'yyyy/mm/dd': '%Y/%m/%d',
+            'dd.mm.yyyy': '%d.%m.%Y',
+            'yyyy.mm.dd': '%Y.%m.%d',
+        }
+        for human, fmt in patterns.items():
+            if human in lower:
+                return fmt
+        
+        # Verbose month formats
+        if 'month dd, yyyy' in lower or 'month dd yyyy' in lower:
+            return '%B %d, %Y'
+        if 'dd month yyyy' in lower:
+            return '%d %B %Y'
+        if 'mmm dd, yyyy' in lower or 'mmm dd yyyy' in lower:
+            return '%b %d, %Y'
+        
+        return None
     
     def execute_operation(
         self, 

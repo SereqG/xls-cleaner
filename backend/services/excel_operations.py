@@ -38,9 +38,12 @@ class ExcelOperationValidator:
         if operation not in cls.ALLOWED_OPERATIONS:
             return False, f"Operation '{operation}' is not allowed"
         
+        def _has_column_param() -> bool:
+            return 'column' in params or 'columns' in params
+        
         # Additional validation per operation type
-        if operation == 'remove_column' and 'column' not in params:
-            return False, "Column name is required for remove_column operation"
+        if operation == 'remove_column' and not _has_column_param():
+            return False, "At least one column name is required for remove_column operation"
         
         if operation == 'rename_column':
             if 'old_name' not in params or 'new_name' not in params:
@@ -58,8 +61,12 @@ class ExcelOperationValidator:
                 return False, "Both old_value and new_value are required for replace_value"
         
         if operation == 'format_date':
-            if 'column' not in params or 'format' not in params:
-                return False, "Both column and format are required for format_date"
+            if 'format' not in params:
+                return False, "Format is required for format_date"
+        
+        if operation in {'change_type', 'upper_case', 'lower_case', 'capitalize', 'round_numbers'}:
+            if not _has_column_param():
+                return False, f"Column(s) are required for {operation}"
         
         return True, ""
 
@@ -72,6 +79,26 @@ class PandasExecutor:
         self.sheet_name = sheet_name
         self.df = pd.read_excel(file_path, sheet_name=sheet_name)
         self.original_shape = self.df.shape
+    
+    def _get_columns_from_params(self, params: Dict[str, Any]) -> List[str]:
+        """Normalize column/columns param into a list"""
+        if 'columns' in params and params['columns'] is not None:
+            columns = params['columns']
+            if isinstance(columns, str):
+                return [columns]
+            return list(columns)
+        
+        column = params.get('column')
+        return [column] if column is not None else []
+    
+    def _split_existing_columns(self, params: Dict[str, Any]) -> tuple[List[str], List[str]]:
+        """
+        Return (existing, missing) columns based on provided params.
+        """
+        columns = self._get_columns_from_params(params)
+        existing = [c for c in columns if c in self.df.columns]
+        missing = [c for c in columns if c not in self.df.columns]
+        return existing, missing
     
     def execute_operation(self, operation: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -140,11 +167,21 @@ class PandasExecutor:
     
     def _execute_remove_column(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Remove a column"""
-        column = params['column']
-        if column in self.df.columns:
-            self.df = self.df.drop(columns=[column])
-            return {'summary': f'Removed column: {column}'}
-        return {'summary': f'Column {column} not found'}
+        columns, missing = self._split_existing_columns(params)
+        
+        if not columns and not missing:
+            return {'summary': 'No columns provided to remove'}
+        
+        if columns:
+            self.df = self.df.drop(columns=columns)
+        
+        summary_parts = []
+        if columns:
+            summary_parts.append(f"Removed columns: {', '.join(columns)}")
+        if missing:
+            summary_parts.append(f"Columns not found: {', '.join(missing)}")
+        
+        return {'summary': '; '.join(summary_parts)}
     
     def _execute_rename_column(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Rename a column"""
@@ -228,87 +265,157 @@ class PandasExecutor:
         """Replace values in DataFrame"""
         old_value = params['old_value']
         new_value = params['new_value']
-        column = params.get('column', None)
-        
-        if column:
-            if column in self.df.columns:
-                self.df[column] = self.df[column].replace(old_value, new_value)
-                return {'summary': f'Replaced "{old_value}" with "{new_value}" in column {column}'}
-            return {'summary': f'Column {column} not found'}
-        else:
-            self.df = self.df.replace(old_value, new_value)
-            return {'summary': f'Replaced "{old_value}" with "{new_value}" in all columns'}
-    
-    def _execute_change_type(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Change column data type"""
-        column = params['column']
-        new_type = params['type']
-        
-        if column not in self.df.columns:
-            return {'summary': f'Column {column} not found'}
-        
-        try:
-            if new_type == 'int':
-                self.df[column] = pd.to_numeric(self.df[column], errors='coerce').astype('Int64')
-            elif new_type == 'float':
-                self.df[column] = pd.to_numeric(self.df[column], errors='coerce')
-            elif new_type == 'str':
-                self.df[column] = self.df[column].astype(str)
-            elif new_type == 'datetime':
-                self.df[column] = pd.to_datetime(self.df[column], errors='coerce')
-            
-            return {'summary': f'Changed {column} to {new_type}'}
-        except Exception as e:
-            return {'summary': f'Error changing type: {str(e)}'}
-    
-    def _execute_trim_whitespace(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Trim whitespace from string columns"""
-        columns = params.get('columns', None)
+        explicit_columns = 'columns' in params or 'column' in params
+        columns, missing = self._split_existing_columns(params)
         
         if columns:
             for col in columns:
-                if col in self.df.columns:
-                    self.df[col] = self.df[col].astype(str).str.strip()
-        else:
-            # Trim all string columns
-            for col in self.df.select_dtypes(include=['object']).columns:
-                self.df[col] = self.df[col].astype(str).str.strip()
+                self.df[col] = self.df[col].replace(old_value, new_value)
+            summary = f'Replaced "{old_value}" with "{new_value}" in columns: {", ".join(columns)}'
+            if missing:
+                summary += f'; Columns not found: {", ".join(missing)}'
+            return {'summary': summary}
         
-        return {'summary': 'Trimmed whitespace from text columns'}
+        if explicit_columns and missing:
+            return {'summary': f'Columns not found: {", ".join(missing)}'}
+        
+        # No columns provided: replace across all columns
+        self.df = self.df.replace(old_value, new_value)
+        return {'summary': f'Replaced "{old_value}" with "{new_value}" in all columns'}
+    
+    def _execute_change_type(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Change column data type"""
+        new_type = params['type']
+        columns, missing = self._split_existing_columns(params)
+        
+        if not columns and not missing:
+            return {'summary': 'No columns provided for change_type'}
+        
+        successes = []
+        errors = []
+        
+        for column in columns:
+            try:
+                if new_type == 'int':
+                    self.df[column] = pd.to_numeric(self.df[column], errors='coerce').astype('Int64')
+                elif new_type == 'float':
+                    self.df[column] = pd.to_numeric(self.df[column], errors='coerce')
+                elif new_type == 'str':
+                    self.df[column] = self.df[column].astype(str)
+                elif new_type == 'datetime':
+                    self.df[column] = pd.to_datetime(self.df[column], errors='coerce')
+                else:
+                    errors.append(f"{column} (unsupported type {new_type})")
+                    continue
+                
+                successes.append(column)
+            except Exception as e:
+                errors.append(f"{column} ({str(e)})")
+        
+        summary_parts = []
+        if successes:
+            summary_parts.append(f"Changed {', '.join(successes)} to {new_type}")
+        if missing:
+            summary_parts.append(f"Columns not found: {', '.join(missing)}")
+        if errors:
+            summary_parts.append(f"Errors: {', '.join(errors)}")
+        
+        return {'summary': '; '.join(summary_parts)}
+    
+    def _execute_trim_whitespace(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Trim whitespace from string columns"""
+        explicit_columns = 'columns' in params or 'column' in params
+        columns, missing = self._split_existing_columns(params)
+        
+        if columns:
+            for col in columns:
+                self.df[col] = self.df[col].astype(str).str.strip()
+            summary = f"Trimmed whitespace in columns: {', '.join(columns)}"
+            if missing:
+                summary += f'; Columns not found: {", ".join(missing)}'
+            return {'summary': summary}
+        
+        if explicit_columns and missing:
+            return {'summary': f'Columns not found: {", ".join(missing)}'}
+        
+        # No specific columns: trim all object columns
+        for col in self.df.select_dtypes(include=['object']).columns:
+            self.df[col] = self.df[col].astype(str).str.strip()
+        
+        return {'summary': 'Trimmed whitespace from all text columns'}
     
     def _execute_upper_case(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Convert text to uppercase"""
-        column = params['column']
-        if column in self.df.columns:
-            self.df[column] = self.df[column].astype(str).str.upper()
-            return {'summary': f'Converted {column} to uppercase'}
-        return {'summary': f'Column {column} not found'}
+        columns, missing = self._split_existing_columns(params)
+        
+        if not columns and not missing:
+            return {'summary': 'No columns provided for upper_case'}
+        
+        for col in columns:
+            self.df[col] = self.df[col].astype(str).str.upper()
+        
+        summary_parts = []
+        if columns:
+            summary_parts.append(f"Converted to uppercase: {', '.join(columns)}")
+        if missing:
+            summary_parts.append(f"Columns not found: {', '.join(missing)}")
+        
+        return {'summary': '; '.join(summary_parts)}
     
     def _execute_lower_case(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Convert text to lowercase"""
-        column = params['column']
-        if column in self.df.columns:
-            self.df[column] = self.df[column].astype(str).str.lower()
-            return {'summary': f'Converted {column} to lowercase'}
-        return {'summary': f'Column {column} not found'}
+        columns, missing = self._split_existing_columns(params)
+        
+        if not columns and not missing:
+            return {'summary': 'No columns provided for lower_case'}
+        
+        for col in columns:
+            self.df[col] = self.df[col].astype(str).str.lower()
+        
+        summary_parts = []
+        if columns:
+            summary_parts.append(f"Converted to lowercase: {', '.join(columns)}")
+        if missing:
+            summary_parts.append(f"Columns not found: {', '.join(missing)}")
+        
+        return {'summary': '; '.join(summary_parts)}
     
     def _execute_capitalize(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Capitalize text"""
-        column = params['column']
-        if column in self.df.columns:
-            self.df[column] = self.df[column].astype(str).str.capitalize()
-            return {'summary': f'Capitalized {column}'}
-        return {'summary': f'Column {column} not found'}
+        columns, missing = self._split_existing_columns(params)
+        
+        if not columns and not missing:
+            return {'summary': 'No columns provided for capitalize'}
+        
+        for col in columns:
+            self.df[col] = self.df[col].astype(str).str.capitalize()
+        
+        summary_parts = []
+        if columns:
+            summary_parts.append(f"Capitalized: {', '.join(columns)}")
+        if missing:
+            summary_parts.append(f"Columns not found: {', '.join(missing)}")
+        
+        return {'summary': '; '.join(summary_parts)}
     
     def _execute_round_numbers(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Round numeric columns"""
-        column = params['column']
+        columns, missing = self._split_existing_columns(params)
         decimals = params.get('decimals', 2)
         
-        if column in self.df.columns:
-            self.df[column] = self.df[column].round(decimals)
-            return {'summary': f'Rounded {column} to {decimals} decimals'}
-        return {'summary': f'Column {column} not found'}
+        if not columns and not missing:
+            return {'summary': 'No columns provided for round_numbers'}
+        
+        for col in columns:
+            self.df[col] = self.df[col].round(decimals)
+        
+        summary_parts = []
+        if columns:
+            summary_parts.append(f"Rounded {', '.join(columns)} to {decimals} decimals")
+        if missing:
+            summary_parts.append(f"Columns not found: {', '.join(missing)}")
+        
+        return {'summary': '; '.join(summary_parts)}
     
     def _execute_drop_empty_rows(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Drop rows that are completely empty"""
@@ -326,32 +433,54 @@ class PandasExecutor:
     
     def _execute_format_date(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Format date column to specified format"""
-        column = params['column']
         date_format = params['format']
         
-        if column not in self.df.columns:
-            return {'summary': f'Column {column} not found'}
+        explicit_columns = 'columns' in params or 'column' in params
+        columns, missing = self._split_existing_columns(params)
         
-        try:
-            # First ensure the column is datetime
-            if not pd.api.types.is_datetime64_any_dtype(self.df[column]):
-                # Try to convert to datetime with flexible parsing
-                # pandas 2.0+ automatically infers format; removed dayfirst to allow flexible parsing
-                self.df[column] = pd.to_datetime(self.df[column], errors='coerce')
+        if not columns and not explicit_columns:
+            # Auto-detect date-like columns when none specified
+            detected_columns = []
+            for col in self.df.columns:
+                try:
+                    converted = pd.to_datetime(self.df[col], errors='coerce')
+                except Exception:
+                    continue
+                
+                if converted.notna().any():
+                    self.df[col] = converted
+                    detected_columns.append(col)
             
-            # Count how many valid dates we have
-            valid_dates = self.df[column].notna().sum()
-            
-            if valid_dates == 0:
-                return {'summary': f'No valid dates found in column {column}. Dates should be in a recognizable format (e.g., YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY)'}
-            
-            # Format the dates
-            self.df[column] = self.df[column].dt.strftime(date_format)
-            
-            return {'summary': f'Formatted {valid_dates} dates in column {column} to {date_format} format'}
-            
-        except Exception as e:
-            return {'summary': f'Error formatting dates: {str(e)}. Make sure the column contains valid dates and the format string is correct (e.g., %Y-%m-%d, %d/%m/%Y, %B %d, %Y)'}
+            columns = detected_columns
+        
+        if not columns and explicit_columns and missing:
+            return {'summary': f"Columns not found: {', '.join(missing)}"}
+        
+        if not columns:
+            return {'summary': 'No date-like columns found to format'}
+        
+        summaries = []
+        
+        for column in columns:
+            try:
+                if not pd.api.types.is_datetime64_any_dtype(self.df[column]):
+                    self.df[column] = pd.to_datetime(self.df[column], errors='coerce')
+                
+                valid_dates = self.df[column].notna().sum()
+                
+                if valid_dates == 0:
+                    summaries.append(f'No valid dates found in column {column}')
+                    continue
+                
+                self.df[column] = self.df[column].dt.strftime(date_format)
+                summaries.append(f'Formatted {valid_dates} dates in column {column} to {date_format}')
+            except Exception as e:
+                summaries.append(f'Error formatting {column}: {str(e)}')
+        
+        if missing:
+            summaries.append(f"Columns not found: {', '.join(missing)}")
+        
+        return {'summary': '; '.join(summaries)}
     
     def get_preview(self, n_rows: int = 5) -> List[Dict[str, Any]]:
         """Get first N rows as preview"""
